@@ -10,5 +10,9 @@ addIcon("ep:home-filled", HomeFilled);
 // @iconify-icons/ri
 import Search from "@iconify-icons/ri/search-line";
 import InformationLine from "@iconify-icons/ri/information-line";
+import WebcamLine from "@iconify-icons/ri/webcam-line";
+import ListIndefinite from "@iconify-icons/ri/list-indefinite";
 addIcon("ri:search-line", Search);
 addIcon("ri:information-line", InformationLine);
+addIcon("ri:webcam-line", WebcamLine);
+addIcon("ri:list-indefinite", ListIndefinite);

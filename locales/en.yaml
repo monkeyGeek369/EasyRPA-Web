@@ -64,6 +64,8 @@ menus:
   pureHome: Home
   pureLogin: Login
   pureAbnormal: Abnormal Page
+  site: Web Site
+  siteList: Web Site List
   pureFourZeroFour: "404"
   pureFourZeroOne: "403"
   pureFive: "500"
