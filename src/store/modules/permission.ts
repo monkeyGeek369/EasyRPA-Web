@@ -27,12 +27,19 @@ export const usePermissionStore = defineStore({
   actions: {
     /** 组装整体路由生成的菜单 */
     handleWholeMenus(routes: any[]) {
+      // 获取静态路由
+      let tempMenus = this.constantMenus;
+
+      // 如果传递了动态路由则将动态路由加入
+      if (routes && routes.length > 0) {
+        tempMenus = tempMenus.concat(routes);
+      }
+
+      // 构建完整路由菜单
       this.wholeMenus = filterNoPermissionTree(
-        filterTree(ascending(this.constantMenus.concat(routes)))
+        filterTree(ascending(tempMenus))
       );
-      this.flatteningRoutes = formatFlatteningRoutes(
-        this.constantMenus.concat(routes)
-      );
+      this.flatteningRoutes = formatFlatteningRoutes(tempMenus);
     },
     cacheOperate({ mode, name }: cacheType) {
       const delIndex = this.cachePageList.findIndex(v => v === name);

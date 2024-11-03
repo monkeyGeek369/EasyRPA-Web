@@ -19,7 +19,8 @@ import {
 import { getConfig } from "@/config";
 import { buildHierarchyTree } from "@/utils/tree";
 import { userKey, type DataInfo } from "@/utils/auth";
-import { type menuType, routerArrays } from "@/layout/types";
+//import { type menuType, routerArrays } from "@/layout/types";
+import type { menuType } from "@/layout/types";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 const IFrame = () => import("@/layout/frame.vue");
@@ -150,6 +151,8 @@ function addPathMatch() {
 }
 
 /** 处理动态路由（后端返回的路由） */
+// 注释掉动态路由获取，暂时不使用
+/*
 function handleAsyncRoutes(routeList) {
   if (routeList.length === 0) {
     usePermissionStoreHook().handleWholeMenus(routeList);
@@ -187,7 +190,7 @@ function handleAsyncRoutes(routeList) {
     ]);
   }
   addPathMatch();
-}
+}*/
 
 /** 初始化路由（`new Promise` 写法防止在异步请求中造成无限循环）*/
 function initRouter() {
@@ -197,13 +200,17 @@ function initRouter() {
     const asyncRouteList = storageLocal().getItem(key) as any;
     if (asyncRouteList && asyncRouteList?.length > 0) {
       return new Promise(resolve => {
-        handleAsyncRoutes(asyncRouteList);
+        //handleAsyncRoutes(asyncRouteList);
+        // 注释掉动态路由获取，直接使用静态路由
+        usePermissionStoreHook().handleWholeMenus(undefined);
         resolve(router);
       });
     } else {
       return new Promise(resolve => {
         getAsyncRoutes().then(({ data }) => {
-          handleAsyncRoutes(cloneDeep(data));
+          //handleAsyncRoutes(cloneDeep(data));
+          // 注释掉动态路由获取，直接使用静态路由
+          usePermissionStoreHook().handleWholeMenus(undefined);
           storageLocal().setItem(key, data);
           resolve(router);
         });
@@ -211,10 +218,13 @@ function initRouter() {
     }
   } else {
     return new Promise(resolve => {
-      getAsyncRoutes().then(({ data }) => {
-        handleAsyncRoutes(cloneDeep(data));
-        resolve(router);
-      });
+      // getAsyncRoutes().then(({ data }) => {
+      //   handleAsyncRoutes(cloneDeep(data));
+      //   resolve(router);
+      // });
+      // 注释掉动态路由获取，直接使用静态路由
+      usePermissionStoreHook().handleWholeMenus(undefined);
+      resolve(router);
     });
   }
 }
