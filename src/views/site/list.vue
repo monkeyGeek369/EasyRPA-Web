@@ -2,6 +2,8 @@
 import { useRouter } from "vue-router";
 import { computed, ref } from "vue";
 import type { ComponentSize } from "element-plus";
+import { searchSites } from "@/api/site";
+import type { SiteSearchReqModel } from "@/api/site";
 
 defineOptions({
   name: "site_list"
@@ -123,6 +125,18 @@ const getData = (page, pageSize) => {
 
 const showData = ref([]);
 showData.value = getData(currentPage.value, pageSize.value);
+
+// search sites
+const datatest: SiteSearchReqModel = {
+  is_active: true,
+  page: 1,
+  page_size: 10,
+  sorts: [{ prop: "id", order: "descending" }]
+};
+
+searchSites(datatest).then(res => {
+  console.log(res);
+});
 
 const handleCurrentChange = (val: number) => {
   // val 为当前页
