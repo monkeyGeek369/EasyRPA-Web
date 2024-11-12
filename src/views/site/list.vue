@@ -1,192 +1,203 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { computed, ref } from "vue";
+import { computed, ref, reactive } from "vue";
 import type { ComponentSize } from "element-plus";
 import { searchSites } from "@/api/site";
 import type { SiteSearchReqModel } from "@/api/site";
+import { message } from "@/utils/message";
 
 defineOptions({
   name: "site_list"
 });
-
-const tableData = ref([
-  {
-    id: 1,
-    date: "2016-05-02",
-    name: "王小虎1",
-    address: "上海市普陀区金沙江路 1518 弄"
-  },
-  {
-    id: 2,
-    date: "2016-05-04",
-    name: "王小虎2",
-    address: "上海市普陀区金沙江路 1517 弄"
-  },
-  {
-    id: 3,
-    date: "2016-05-01",
-    name: "王小虎3",
-    address: "上海市普陀区金沙江路 1519 弄"
-  },
-  {
-    id: 4,
-    date: "2016-05-03",
-    name: "王小虎4",
-    address: "上海市普陀区金沙江路 1516 弄"
-  },
-  {
-    id: 5,
-    date: "2016-05-02",
-    name: "王小虎5",
-    address: "上海市普陀区金沙江路 1518 弄"
-  },
-  {
-    id: 6,
-    date: "2016-05-04",
-    name: "王小虎6",
-    address: "上海市普陀区金沙江路 1517 弄"
-  },
-  {
-    id: 7,
-    date: "2016-05-01",
-    name: "王小虎7",
-    address: "上海市普陀区金沙江路 1519 弄"
-  },
-  {
-    id: 8,
-    date: "2016-05-03",
-    name: "王小虎8",
-    address: "上海市普陀区金沙江路 1516 弄"
-  },
-  {
-    id: 9,
-    date: "2016-05-02",
-    name: "王小虎9",
-    address: "上海市普陀区金沙江路 1518 弄"
-  },
-  {
-    id: 10,
-    date: "2016-05-04",
-    name: "王小虎10",
-    address: "上海市普陀区金沙江路 1517 弄"
-  },
-  {
-    id: 11,
-    date: "2016-05-01",
-    name: "王小虎11",
-    address: "上海市普陀区金沙江路 1519 弄"
-  },
-  {
-    id: 12,
-    date: "2016-05-03",
-    name: "王小虎12",
-    address: "上海市普陀区金沙江路 1516 弄"
-  },
-  {
-    id: 13,
-    date: "2016-05-02",
-    name: "王小虎13",
-    address: "上海市普陀区金沙江路 1518 弄"
-  },
-  {
-    id: 14,
-    date: "2016-05-04",
-    name: "王小虎14",
-    address: "上海市普陀区金沙江路 1517 弄"
-  },
-  {
-    id: 15,
-    date: "2016-05-01",
-    name: "王小虎15",
-    address: "上海市普陀区金沙江路 1519 弄"
-  },
-  {
-    id: 16,
-    date: "2016-05-03",
-    name: "王小虎16",
-    address: "上海市普陀区金沙江路 1516 弄"
-  }
-]);
-
-const total = ref(tableData.value.length);
-const pageSize = ref(2);
-const currentPage = ref(1);
 
 // 控制组件大小
 const size = ref<ComponentSize>("default");
 const disabled = ref(false);
 const background = ref(false);
 
-const getData = (page, pageSize) => {
-  const startIndex = (page - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  return tableData.value.slice(startIndex, endIndex);
+// 响应式参数
+const tableData = ref([]);
+const total = ref(0);
+const pageSize = ref(10);
+const currentPage = ref(1);
+const sortProp = ref("id");
+const sortOrder = ref("desc");
+
+// 分页数据获取
+const getData = (page, pageSize, prop, order) => {
+  // search sites
+  const datatest: SiteSearchReqModel = {
+    //is_active: true,
+    page: page,
+    page_size: pageSize,
+    sorts: [{ prop: prop, order: order }]
+  };
+
+  searchSites(datatest).then(res => {
+    if (res?.status) {
+      total.value = res.data.total;
+      tableData.value = res.data.data;
+      //console.log(tableData.value);
+    } else {
+      message(res.message + "(" + res.data?.message + ")", { type: "error" });
+    }
+  });
 };
 
-const showData = ref([]);
-showData.value = getData(currentPage.value, pageSize.value);
+// 初始化
+getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
 
-// search sites
-const datatest: SiteSearchReqModel = {
-  is_active: true,
-  page: 1,
-  page_size: 10,
-  sorts: [{ prop: "id", order: "descending" }]
-};
-
-searchSites(datatest).then(res => {
-  console.log(res);
-});
-
+// 分页
 const handleCurrentChange = (val: number) => {
   // val 为当前页
-  console.log(`${val} handleCurrentChange`);
   currentPage.value = val;
   // 更新 tableData
-  showData.value = getData(currentPage.value, pageSize.value);
-};
-const handleSizeChange = (val: number) => {
-  // val 为当前页展示条数
-  console.log(`${val} handleSizeChange`);
-  pageSize.value = val;
-  // 更新 tableData
-  showData.value = getData(currentPage.value, pageSize.value);
+  getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
 };
 
+// 每页展示条数
+const handleSizeChange = (val: number) => {
+  // val 为当前页展示条数
+  pageSize.value = val;
+  // 更新 tableData
+  getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
+};
+
+// 排序
 const sortChange = column => {
   // 排序字段"prop": "id", 排序顺序"order": null/"ascending"/"descending"
-  console.log(column, "sortChange");
+  sortProp.value = column.prop;
+  sortOrder.value = column.order == "ascending" ? "asc" : "desc";
+  // 更新 tableData
+  getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
+};
+
+// 日期格式化
+const dateFormat = (row, column) => {
+  const date = new Date(row[column.property]);
+  return date.toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  });
+};
+
+// 布尔格式化
+const formatBoolean = (row, column) => {
+  return row[column.property] ? "启用" : "不启用";
+};
+
+const formInline = reactive({
+  id: undefined,
+  site_name: undefined,
+  site_description: undefined,
+  is_active: undefined
+});
+
+const onSubmit = () => {
+  console.log(formInline);
 };
 
 const router = useRouter();
 </script>
 
 <template>
-  <div>
-    <el-table
-      :data="showData"
-      :stripe="true"
-      :default-sort="{ prop: 'id', order: 'descending' }"
-      :border="true"
-      style="width: 100%; height: 100%"
-      @sort-change="sortChange"
-    >
-      <el-table-column prop="id" label="ID" width="80" sortable="custom" />
-      <el-table-column prop="date" label="日期" width="180" sortable="custom" />
-      <el-table-column prop="name" label="姓名" width="180" />
-      <el-table-column prop="address" label="地址" />
-    </el-table>
-    <el-pagination
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
-      :page-sizes="[5, 20, 50, 100, 200]"
-      :size="size"
-      :disabled="disabled"
-      :background="background"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="total"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-    />
-  </div>
+  <!-- 搜索表单行 -->
+  <el-row style="padding-top: 30px">
+    <el-col :span="24">
+      <el-form :inline="true" :model="formInline">
+        <el-form-item label="ID">
+          <el-input v-model="formInline.id" placeholder="请输入站点ID" />
+        </el-form-item>
+        <el-form-item label="站点名称">
+          <el-input
+            v-model="formInline.site_name"
+            placeholder="请输入站点名称"
+          />
+        </el-form-item>
+        <el-form-item label="站点描述">
+          <el-input
+            v-model="formInline.site_description"
+            placeholder="请输入站点描述"
+          />
+        </el-form-item>
+        <el-form-item label="是否启用">
+          <el-select
+            v-model="formInline.is_active"
+            placeholder="请选择"
+            style="width: 220px"
+          >
+            <el-option label="启用" value="true" />
+            <el-option label="不启用" value="false" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSubmit">查询</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="default" @click="onSubmit">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-col>
+  </el-row>
+
+  <!-- 分割线 -->
+  <el-divider />
+
+  <!-- 表格行 -->
+  <el-row>
+    <el-col :span="24">
+      <el-table
+        :data="tableData"
+        :stripe="true"
+        :default-sort="{ prop: 'id', order: 'descending' }"
+        :border="true"
+        style="width: 100%; height: 100%"
+        @sort-change="sortChange"
+      >
+        <el-table-column prop="id" label="ID" width="80" sortable="custom" />
+        <el-table-column prop="site_name" label="站点名称" width="180" />
+        <el-table-column prop="site_description" label="站点描述" width="180" />
+        <el-table-column prop="created_id" label="创建人ID" />
+        <el-table-column
+          prop="created_time"
+          label="创建日期"
+          :formatter="dateFormat"
+        />
+        <el-table-column prop="modify_id" label="修改人ID" />
+        <el-table-column
+          prop="modify_time"
+          label="修改日期"
+          :formatter="dateFormat"
+        />
+        <el-table-column
+          prop="is_active"
+          label="是否启用"
+          :formatter="formatBoolean"
+        />
+      </el-table>
+    </el-col>
+  </el-row>
+
+  <!-- 分页行 -->
+  <el-row>
+    <el-col :span="24" style="margin-top: 20px; margin-bottom: 20px">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        scrollbar-tabindex="1"
+        :page-sizes="[10, 20, 50, 100, 200]"
+        :size="size"
+        :disabled="disabled"
+        :background="background"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+    /></el-col>
+  </el-row>
 </template>

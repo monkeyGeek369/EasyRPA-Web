@@ -35,4 +35,11 @@ declare module "easyrpa" {
     trace_id: string;
     is_active: boolean;
   }
+
+  export interface ResponseBaseModel {
+    status: boolean;
+    code: number;
+    message: string;
+    data: any;
+  }
 }

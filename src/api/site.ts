@@ -3,7 +3,8 @@ import { baseUrlApi, buildRequestModel } from "./utils";
 import type {
   RequestPageBaseModel,
   ResponseDoBaseModel,
-  ResponsePageBaseModel
+  ResponsePageBaseModel,
+  ResponseBaseModel
 } from "easyrpa";
 
 export interface SiteSearchReqModel extends RequestPageBaseModel {
@@ -26,7 +27,7 @@ export interface SiteSearchResModel extends ResponsePageBaseModel {
 /** 搜索站点 */
 export const searchSites = (data?: SiteSearchReqModel) => {
   const retData = buildRequestModel(data);
-  return http.request<SiteSearchResModel>(
+  return http.request<ResponseBaseModel>(
     "post",
     baseUrlApi("site/search/sites"),
     { data: retData }
