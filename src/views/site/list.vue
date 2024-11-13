@@ -2,9 +2,10 @@
 import { useRouter } from "vue-router";
 import { computed, ref, reactive } from "vue";
 import type { ComponentSize } from "element-plus";
-import { searchSites } from "@/api/site";
-import type { SiteSearchReqModel } from "@/api/site";
+import { searchSites, deleteSite } from "@/api/site";
+import type { SiteSearchReqModel, SiteDetailModel } from "@/api/site";
 import { message } from "@/utils/message";
+import { Delete, Edit } from "@element-plus/icons-vue";
 
 defineOptions({
   name: "site_list"
@@ -22,12 +23,28 @@ const pageSize = ref(10);
 const currentPage = ref(1);
 const sortProp = ref("id");
 const sortOrder = ref("desc");
+const formInline = reactive({
+  id: undefined,
+  site_name: undefined,
+  site_description: undefined,
+  is_active: undefined
+});
+const selectValues = ref<SiteDetailModel[]>([]);
+const deleteVisible = ref(false);
 
 // 分页数据获取
 const getData = (page, pageSize, prop, order) => {
   // search sites
   const datatest: SiteSearchReqModel = {
-    //is_active: true,
+    id: formInline.id,
+    site_name: formInline.site_name,
+    site_description: formInline.site_description,
+    is_active:
+      formInline.is_active === undefined
+        ? null
+        : formInline.is_active === "true"
+          ? true
+          : false,
     page: page,
     page_size: pageSize,
     sorts: [{ prop: prop, order: order }]
@@ -91,15 +108,44 @@ const formatBoolean = (row, column) => {
   return row[column.property] ? "启用" : "不启用";
 };
 
-const formInline = reactive({
-  id: undefined,
-  site_name: undefined,
-  site_description: undefined,
-  is_active: undefined
-});
-
+// 搜索
 const onSubmit = () => {
-  console.log(formInline);
+  getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
+};
+
+// 重置
+const cleanForm = () => {
+  formInline.id = undefined;
+  formInline.site_name = undefined;
+  formInline.site_description = undefined;
+  formInline.is_active = undefined;
+};
+
+// 选择行
+const handleSelectionChange = (val: SiteDetailModel[]) => {
+  selectValues.value = val;
+};
+
+// 删除
+const handleDelete = () => {
+  if (selectValues.value.length === 0) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+  deleteVisible.value = true;
+};
+const handleDeleteConfirm = () => {
+  Promise.all(selectValues.value.map(v => deleteSite(v.id))).then(responses => {
+    responses.forEach(res => {
+      if (res?.status) {
+        message(res.message, { type: "success" });
+      } else {
+        message(res.message + "(" + res.data?.message + ")", { type: "error" });
+      }
+    });
+    onSubmit();
+  });
+  deleteVisible.value = false;
 };
 
 const router = useRouter();
@@ -139,9 +185,21 @@ const router = useRouter();
           <el-button type="primary" @click="onSubmit">查询</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="default" @click="onSubmit">重置</el-button>
+          <el-button type="default" @click="cleanForm">重置</el-button>
         </el-form-item>
       </el-form>
+    </el-col>
+  </el-row>
+
+  <!-- 分割线 -->
+  <el-divider />
+
+  <!-- 按钮行 -->
+  <el-row>
+    <el-col :span="24">
+      <el-button type="primary" round>新增</el-button>
+      <el-button type="primary" :icon="Edit" circle />
+      <el-button type="danger" :icon="Delete" circle @click="handleDelete" />
     </el-col>
   </el-row>
 
@@ -157,8 +215,10 @@ const router = useRouter();
         :default-sort="{ prop: 'id', order: 'descending' }"
         :border="true"
         style="width: 100%; height: 100%"
+        @selection-change="handleSelectionChange"
         @sort-change="sortChange"
       >
+        <el-table-column type="selection" width="55" />
         <el-table-column prop="id" label="ID" width="80" sortable="custom" />
         <el-table-column prop="site_name" label="站点名称" width="180" />
         <el-table-column prop="site_description" label="站点描述" width="180" />
@@ -200,4 +260,17 @@ const router = useRouter();
         @current-change="handleCurrentChange"
     /></el-col>
   </el-row>
+
+  <!-- 删除确认框 -->
+  <el-dialog v-model="deleteVisible" title="提示" width="500">
+    <span>是否确认删除</span>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="deleteVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleDeleteConfirm">
+          确认
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>

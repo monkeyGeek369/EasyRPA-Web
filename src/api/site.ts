@@ -33,3 +33,11 @@ export const searchSites = (data?: SiteSearchReqModel) => {
     { data: retData }
   );
 };
+
+/** 删除站点**/
+export const deleteSite = (site_id: number) => {
+  const retData = buildRequestModel(site_id);
+  return http.request<ResponseBaseModel>("post", baseUrlApi(`site/delete`), {
+    data: retData
+  });
+};
