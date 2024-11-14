@@ -2,10 +2,16 @@
 import { useRouter } from "vue-router";
 import { computed, ref, reactive } from "vue";
 import type { ComponentSize } from "element-plus";
-import { searchSites, deleteSite } from "@/api/site";
-import type { SiteSearchReqModel, SiteDetailModel } from "@/api/site";
+import { searchSites, deleteSite, addSite, updateSite } from "@/api/site";
+import type {
+  SiteSearchReqModel,
+  SiteDetailModel,
+  SiteAddReqModel,
+  SiteUpdateReqModel
+} from "@/api/site";
 import { message } from "@/utils/message";
 import { Delete, Edit } from "@element-plus/icons-vue";
+import { is } from "@pureadmin/utils";
 
 defineOptions({
   name: "site_list"
@@ -31,6 +37,18 @@ const formInline = reactive({
 });
 const selectValues = ref<SiteDetailModel[]>([]);
 const deleteVisible = ref(false);
+const addFormInline = reactive<SiteAddReqModel>({
+  site_name: undefined,
+  site_description: undefined
+});
+const addVisible = ref(false);
+const updateFormInline = reactive({
+  id: undefined,
+  site_name: undefined,
+  site_description: undefined,
+  is_active: undefined
+});
+const updateVisible = ref(false);
 
 // 分页数据获取
 const getData = (page, pageSize, prop, order) => {
@@ -148,6 +166,81 @@ const handleDeleteConfirm = () => {
   deleteVisible.value = false;
 };
 
+// 新增
+const addSiteDialog = () => {
+  if (addFormInline.site_name === undefined) {
+    message("请输入站点名称", { type: "error" });
+    return;
+  }
+  if (addFormInline.site_description === undefined) {
+    message("请输入站点描述", { type: "error" });
+    return;
+  }
+
+  addSite(addFormInline).then(res => {
+    if (res?.status) {
+      message(res.message, { type: "success" });
+      onSubmit();
+      // clean
+      addFormInline.site_name = undefined;
+      addFormInline.site_description = undefined;
+      addVisible.value = false;
+    } else {
+      message(res.message + "(" + res.data + ")", { type: "error" });
+    }
+  });
+};
+
+// 修改
+const showUpdateDialog = () => {
+  if (selectValues.value.length === 0) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+  if (selectValues.value.length > 1) {
+    message("只能选择一条数据", { type: "error" });
+    return;
+  }
+  updateVisible.value = true;
+
+  const row = selectValues.value[0];
+  updateFormInline.site_name = row.site_name;
+  updateFormInline.site_description = row.site_description;
+  updateFormInline.is_active = row.is_active ? "1" : "0";
+  updateFormInline.id = row.id;
+};
+const updateSiteDialog = () => {
+  if (updateFormInline.id === undefined) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+  if (updateFormInline.site_name === undefined) {
+    message("请输入站点名称", { type: "error" });
+    return;
+  }
+  if (updateFormInline.site_description === undefined) {
+    message("请输入站点描述", { type: "error" });
+    return;
+  }
+
+  const updateData: SiteUpdateReqModel = {
+    site_id: updateFormInline.id,
+    site_name: updateFormInline.site_name,
+    site_description: updateFormInline.site_description,
+    is_active: updateFormInline.is_active == "1" ? true : false
+  };
+
+  updateSite(updateData).then(res => {
+    if (res?.status) {
+      message(res.message, { type: "success" });
+      onSubmit();
+      updateVisible.value = false;
+    } else {
+      message(res.message + "(" + res.data?.message + ")", { type: "error" });
+    }
+  });
+};
+
 const router = useRouter();
 </script>
 
@@ -197,8 +290,10 @@ const router = useRouter();
   <!-- 按钮行 -->
   <el-row>
     <el-col :span="24">
-      <el-button type="primary" round>新增</el-button>
-      <el-button type="primary" :icon="Edit" circle />
+      <el-button type="primary" round @click="addVisible = true"
+        >新增</el-button
+      >
+      <el-button type="primary" :icon="Edit" circle @click="showUpdateDialog" />
       <el-button type="danger" :icon="Delete" circle @click="handleDelete" />
     </el-col>
   </el-row>
@@ -270,6 +365,63 @@ const router = useRouter();
         <el-button type="primary" @click="handleDeleteConfirm">
           确认
         </el-button>
+      </div>
+    </template>
+  </el-dialog>
+
+  <!-- 新增对话框 -->
+  <el-dialog v-model="addVisible" title="新增" width="500">
+    <el-form :model="addFormInline">
+      <el-form-item label="站点名称">
+        <el-input
+          v-model="addFormInline.site_name"
+          placeholder="请输入站点名称"
+        />
+      </el-form-item>
+      <el-form-item label="站点描述">
+        <el-input
+          v-model="addFormInline.site_description"
+          placeholder="请输入站点描述"
+        />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="addVisible = false">取消</el-button>
+        <el-button type="primary" @click="addSiteDialog"> 确认 </el-button>
+      </div>
+    </template>
+  </el-dialog>
+
+  <!-- 修改对话框 -->
+  <el-dialog v-model="updateVisible" title="编辑" width="500">
+    <el-form :model="updateFormInline">
+      <el-form-item label="站点ID">
+        <el-input v-model="updateFormInline.id" disabled />
+      </el-form-item>
+      <el-form-item label="站点名称">
+        <el-input
+          v-model="updateFormInline.site_name"
+          placeholder="请输入站点名称"
+        />
+      </el-form-item>
+      <el-form-item label="站点描述">
+        <el-input
+          v-model="updateFormInline.site_description"
+          placeholder="请输入站点描述"
+        />
+      </el-form-item>
+      <el-form-item label="是否启用">
+        <el-radio-group v-model="updateFormInline.is_active">
+          <el-radio value="1" size="large">启用</el-radio>
+          <el-radio value="0" size="large">不启用</el-radio>
+        </el-radio-group>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="updateVisible = false">取消</el-button>
+        <el-button type="primary" @click="updateSiteDialog"> 确认 </el-button>
       </div>
     </template>
   </el-dialog>
