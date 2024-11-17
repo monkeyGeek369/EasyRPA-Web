@@ -15,7 +15,7 @@ export default {
       name: "site_list",
       component: () => import("@/views/site/list.vue"),
       meta: {
-        icon: "ri:list-indefinite",
+        icon: "ri:webcam-line",
         title: $t("menus.siteList")
       }
     }

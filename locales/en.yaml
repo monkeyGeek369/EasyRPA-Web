@@ -66,6 +66,9 @@ menus:
   pureAbnormal: Abnormal Page
   site: Web Site
   siteList: Web Site List
+  metaData: Meta Data
+  metaDataList: Meta Data List
+  metaDataItemList: Meta Data Item List
   pureFourZeroFour: "404"
   pureFourZeroOne: "403"
   pureFive: "500"

@@ -66,6 +66,9 @@ menus:
   pureAbnormal: 异常页面
   site: 网站站点
   siteList: 网站站点列表
+  metaData: 元数据
+  metaDataList: 元数据列表
+  metaDataItemList: 元数据项列表
   pureFourZeroFour: "404"
   pureFourZeroOne: "403"
   pureFive: "500"
