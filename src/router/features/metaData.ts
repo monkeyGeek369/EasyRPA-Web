@@ -4,7 +4,7 @@ export default {
   path: "/metaData",
   redirect: "/metaData/list",
   meta: {
-    icon: "ri:list-indefinite",
+    icon: "ri:stack-overflow-fill",
     title: $t("menus.metaData"),
     showLink: true,
     rank: 9
@@ -15,7 +15,7 @@ export default {
       name: "metaDataList",
       component: () => import("@/views/metaData/list.vue"),
       meta: {
-        icon: "ri:list-indefinite",
+        icon: "ri:stack-overflow-fill",
         title: $t("menus.metaDataList")
       }
     },

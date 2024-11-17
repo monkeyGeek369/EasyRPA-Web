@@ -139,11 +139,6 @@ const cleanForm = () => {
   formInline.is_active = undefined;
 };
 
-// 选择行
-const handleSelectionChange = (val: SiteDetailModel[]) => {
-  selectValues.value = val;
-};
-
 // 删除
 const handleDelete = (row: SiteDetailModel) => {
   if (row == undefined) {
@@ -174,7 +169,7 @@ const handleDeleteConfirm = () => {
 };
 
 // 新增
-const addSiteDialog = () => {
+const addDialog = () => {
   if (addFormInline.site_name === undefined) {
     message("请输入站点名称", { type: "error" });
     return;
@@ -423,7 +418,7 @@ const router = useRouter();
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="addVisible = false">取消</el-button>
-          <el-button type="primary" @click="addSiteDialog"> 确认 </el-button>
+          <el-button type="primary" @click="addDialog"> 确认 </el-button>
         </div>
       </template>
     </el-dialog>

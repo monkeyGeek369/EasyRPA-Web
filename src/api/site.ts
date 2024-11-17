@@ -68,3 +68,13 @@ export const updateSite = (data: SiteUpdateReqModel) => {
     data: retData
   });
 };
+
+/** 根据名称模糊搜索站点 */
+export const searchSitesByName = (data: string) => {
+  const retData = buildRequestModel(data);
+  return http.request<ResponseBaseModel>(
+    "post",
+    baseUrlApi("site/search/name"),
+    { data: retData }
+  );
+};
