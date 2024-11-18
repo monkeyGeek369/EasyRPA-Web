@@ -8,11 +8,22 @@ import { is } from "@pureadmin/utils";
 import type {
   FlowSearchReqModel,
   FlowDetailModel,
-  FlowAddReqModel
+  FlowAddReqModel,
+  FlowUpdateReqModel
 } from "@/api/flow";
-import { searchFlows, addFlow } from "@/api/flow";
+import {
+  searchFlows,
+  addFlow,
+  getRpaTypes,
+  getExeEnvs,
+  getBizTypes,
+  getRetryCodes,
+  logicDeleteFlow,
+  updateFlow
+} from "@/api/flow";
 import { searchSitesByName } from "@/api/site";
 import type { SiteDetailModel } from "@/api/site";
+import { MetaDataItemDetailModel } from "@/api/metaData";
 
 defineOptions({
   name: "flow_list"
@@ -50,20 +61,53 @@ const addFormInline = reactive<FlowAddReqModel>({
   flow_rpa_type: undefined,
   flow_exe_env: undefined,
   flow_biz_type: undefined,
-  max_retry_number: undefined,
-  max_exe_time: undefined,
+  max_retry_number: 3,
+  max_exe_time: 3600,
   retry_code: undefined,
-  request_check_script: "// todo : request_check_script",
-  request_adapt_script: "// todo : request_adapt_script",
-  flow_exe_script: "// todo : flow_exe_script",
-  flow_result_handle_script: "// todo : flow_result_handle_script"
+  request_check_script: "# todo : request_check_script",
+  request_adapt_script: "# todo : request_adapt_script",
+  flow_exe_script: "# todo : flow_exe_script",
+  flow_result_handle_script: "# todo : flow_result_handle_script"
 });
 const addVisible = ref(false);
 
-// 站点模糊搜索
+// 站点模糊搜索(新增)
 const siteDetailSelectValue = ref<number>();
 const siteDetailSelectLoading = ref(false);
 const siteDetailSelectOptions = ref<SiteDetailModel[]>([]);
+
+// 站点模糊搜索(修改)
+const siteDetailSelectUpdateValue = ref<number>();
+const siteDetailSelectUpdateLoading = ref(false);
+const siteDetailSelectUpdateOptions = ref<SiteDetailModel[]>([]);
+
+// 流程类型/执行环境/业务类型
+const flowRpaTypeOptions = ref<MetaDataItemDetailModel[]>([]);
+const flowExeEnvOptions = ref<MetaDataItemDetailModel[]>([]);
+const flowBizTypeOptions = ref<MetaDataItemDetailModel[]>([]);
+const flowRetryCodeOptions = ref<MetaDataItemDetailModel[]>([]);
+const addFormRetryCodes = ref<string[]>([]);
+const updateFormRetryCodes = ref<string[]>([]);
+
+// 修改字段
+const updateFormInline = reactive({
+  id: undefined,
+  site_id: undefined,
+  flow_code: undefined,
+  flow_name: undefined,
+  flow_rpa_type: undefined,
+  flow_exe_env: undefined,
+  flow_biz_type: undefined,
+  max_retry_number: 3,
+  max_exe_time: 3600,
+  retry_code: undefined,
+  request_check_script: "# todo : request_check_script",
+  request_adapt_script: "# todo : request_adapt_script",
+  flow_exe_script: "# todo : flow_exe_script",
+  flow_result_handle_script: "# todo : flow_result_handle_script",
+  is_active: undefined
+});
+const updateVisible = ref(false);
 
 // 分页数据获取
 const getData = (page, pageSize, prop, order) => {
@@ -182,6 +226,12 @@ const addDialog = () => {
     message("请输入最大执行时间", { type: "error" });
     return;
   }
+
+  if (addFormRetryCodes.value.length === 0) {
+    message("请输入重试code", { type: "error" });
+    return;
+  }
+  addFormInline.retry_code = addFormRetryCodes.value.join(",");
   if (addFormInline.retry_code === undefined) {
     message("请输入重试code", { type: "error" });
     return;
@@ -203,8 +253,6 @@ const addDialog = () => {
       addFormInline.flow_rpa_type = undefined;
       addFormInline.flow_exe_env = undefined;
       addFormInline.flow_biz_type = undefined;
-      addFormInline.max_retry_number = undefined;
-      addFormInline.max_exe_time = undefined;
       addFormInline.retry_code = undefined;
 
       addVisible.value = false;
@@ -230,6 +278,185 @@ const searchSites = (query: string) => {
   } else {
     siteDetailSelectOptions.value = [];
   }
+};
+
+// 流程类型/执行环境/业务类型
+getRpaTypes().then(res => {
+  if (res?.status) {
+    flowRpaTypeOptions.value = res.data.data;
+  }
+});
+getExeEnvs().then(res => {
+  if (res?.status) {
+    flowExeEnvOptions.value = res.data.data;
+  }
+});
+getBizTypes().then(res => {
+  if (res?.status) {
+    flowBizTypeOptions.value = res.data.data;
+  }
+});
+
+// 重试码
+getRetryCodes().then(res => {
+  if (res?.status) {
+    flowRetryCodeOptions.value = res.data.data;
+  }
+});
+
+// 删除
+const handleDelete = (row: FlowDetailModel) => {
+  if (row == undefined) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+
+  selectValues.value = [row];
+  deleteVisible.value = true;
+};
+const handleDeleteConfirm = () => {
+  if (selectValues.value.length === 0) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+
+  Promise.all(selectValues.value.map(v => logicDeleteFlow(v.id))).then(
+    responses => {
+      responses.forEach(res => {
+        if (res?.status) {
+          message(res.message, { type: "success" });
+        } else {
+          message(res.message + "(" + res.data?.message + ")", {
+            type: "error"
+          });
+        }
+      });
+      getData(
+        currentPage.value,
+        pageSize.value,
+        sortProp.value,
+        sortOrder.value
+      );
+    }
+  );
+  deleteVisible.value = false;
+};
+
+// 修改
+const showUpdateDialog = (selectRow: FlowDetailModel) => {
+  if (selectRow == undefined) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+
+  selectValues.value = [selectRow];
+
+  if (selectValues.value.length === 0) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+  if (selectValues.value.length > 1) {
+    message("只能选择一条数据", { type: "error" });
+    return;
+  }
+  updateVisible.value = true;
+
+  const row = selectValues.value[0];
+
+  updateFormInline.site_id = siteDetailSelectUpdateValue.value;
+  updateFormInline.flow_code = row.flow_code;
+  updateFormInline.flow_name = row.flow_name;
+  updateFormInline.flow_rpa_type = row.flow_rpa_type;
+  updateFormInline.flow_exe_env = row.flow_exe_env;
+  updateFormInline.flow_biz_type = row.flow_biz_type;
+  updateFormInline.max_retry_number = row.max_retry_number;
+  updateFormInline.max_exe_time = row.max_exe_time;
+  if (updateFormRetryCodes.value.length === 0) {
+    message("请输入重试code", { type: "error" });
+    return;
+  }
+  updateFormInline.retry_code = updateFormRetryCodes.value.join(",");
+  updateFormInline.request_check_script = row.request_check_script;
+  updateFormInline.request_adapt_script = row.request_adapt_script;
+  updateFormInline.flow_exe_script = row.flow_exe_script;
+  updateFormInline.flow_result_handle_script = row.flow_result_handle_script;
+  updateFormInline.is_active = row.is_active ? "1" : "0";
+  updateFormInline.id = row.id;
+};
+const updateDialog = () => {
+  if (updateFormInline.id === undefined) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+  if (updateFormInline.site_id === undefined) {
+    message("请选择站点", { type: "error" });
+    return;
+  }
+  if (updateFormInline.flow_code === undefined) {
+    message("请输入流程code", { type: "error" });
+    return;
+  }
+  if (updateFormInline.flow_name === undefined) {
+    message("请输入流程名称", { type: "error" });
+    return;
+  }
+  if (updateFormInline.flow_rpa_type === undefined) {
+    message("请选择选择流程类型", { type: "error" });
+    return;
+  }
+  if (updateFormInline.flow_exe_env === undefined) {
+    message("请选择执行环境", { type: "error" });
+    return;
+  }
+  if (updateFormInline.flow_biz_type === undefined) {
+    message("请选择业务类型", { type: "error" });
+    return;
+  }
+  if (updateFormInline.max_retry_number === undefined) {
+    message("请输入最大重试次数", { type: "error" });
+    return;
+  }
+  if (updateFormInline.max_exe_time === undefined) {
+    message("请输入最大执行时间", { type: "error" });
+    return;
+  }
+  if (updateFormInline.retry_code === undefined) {
+    message("请输入重试code", { type: "error" });
+    return;
+  }
+
+  const updateData: FlowUpdateReqModel = {
+    id: updateFormInline.id,
+    site_id: updateFormInline.site_id,
+    flow_code: updateFormInline.flow_code,
+    flow_name: updateFormInline.flow_name,
+    flow_rpa_type: updateFormInline.flow_rpa_type,
+    flow_exe_env: updateFormInline.flow_exe_env,
+    flow_biz_type: updateFormInline.flow_biz_type,
+    max_retry_number: updateFormInline.max_retry_number,
+    max_exe_time: updateFormInline.max_exe_time,
+    retry_code: updateFormInline.retry_code,
+    request_check_script: updateFormInline.request_check_script,
+    request_adapt_script: updateFormInline.request_adapt_script,
+    flow_exe_script: updateFormInline.flow_exe_script,
+    flow_result_handle_script: updateFormInline.flow_result_handle_script,
+    is_active: updateFormInline.is_active == "1" ? true : false
+  };
+
+  updateFlow(updateData).then(res => {
+    if (res?.status) {
+      message(res.message, { type: "success" });
+      getData(
+        currentPage.value,
+        pageSize.value,
+        sortProp.value,
+        sortOrder.value
+      );
+      updateVisible.value = false;
+    } else {
+      message(res.message + "(" + res.data?.message + ")", { type: "error" });
+    }
+  });
 };
 </script>
 <template>
@@ -312,7 +539,26 @@ const searchSites = (query: string) => {
             label="是否启用"
             :formatter="formatBoolean"
           />
-          <el-table-column fixed="right" label="操作" min-width="120" />
+          <el-table-column fixed="right" label="操作" min-width="120">
+            <template #default="scope">
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="showUpdateDialog(scope.row)"
+              >
+                编辑
+              </el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleDelete(scope.row)"
+              >
+                删除
+              </el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </el-col>
     </el-row>
@@ -372,46 +618,222 @@ const searchSites = (query: string) => {
           />
         </el-form-item>
         <el-form-item label="流程类型">
-          <el-input
+          <el-select
             v-model="addFormInline.flow_rpa_type"
             placeholder="请选择流程类型"
-          />
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in flowRpaTypeOptions"
+              :key="item.business_code"
+              :label="item.name_cn"
+              :value="Number(item.business_code)"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="执行环境">
-          <el-input
+          <el-select
             v-model="addFormInline.flow_exe_env"
             placeholder="请选择执行环境"
-          />
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in flowExeEnvOptions"
+              :key="item.business_code"
+              :label="item.name_cn"
+              :value="Number(item.business_code)"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="业务类型">
-          <el-input
+          <el-select
             v-model="addFormInline.flow_biz_type"
             placeholder="请选择业务类型"
-          />
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in flowBizTypeOptions"
+              :key="item.business_code"
+              :label="item.name_cn"
+              :value="Number(item.business_code)"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="最大重试次数">
-          <el-input
+          <el-input-number
             v-model="addFormInline.max_retry_number"
-            placeholder="请输入最大重试次数"
+            :min="1"
+            :max="10"
           />
         </el-form-item>
-        <el-form-item label="最大执行时间">
-          <el-input
+        <el-form-item label="最大执行时间(秒)">
+          <el-input-number
             v-model="addFormInline.max_exe_time"
-            placeholder="请输入最大执行时间"
+            :min="1800"
+            :max="36000"
+            :step="600"
           />
         </el-form-item>
         <el-form-item label="重试code">
-          <el-input
-            v-model="addFormInline.retry_code"
-            placeholder="请输入重试code"
-          />
+          <el-select
+            v-model="addFormRetryCodes"
+            placeholder="请选择重试code"
+            multiple
+            collapse-tags-tooltip
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in flowRetryCodeOptions"
+              :key="item.business_code"
+              :label="item.name_cn"
+              :value="item.business_code"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="addVisible = false">取消</el-button>
           <el-button type="primary" @click="addDialog"> 确认 </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 删除确认框 -->
+    <el-dialog v-model="deleteVisible" title="提示" width="500">
+      <span>是否确认逻辑删除</span>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="deleteVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleDeleteConfirm">
+            确认
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 修改对话框 -->
+    <el-dialog v-model="updateVisible" title="编辑" width="500">
+      <el-form :model="updateFormInline">
+        <el-form-item label="流程ID">
+          <el-input v-model="updateFormInline.id" disabled />
+        </el-form-item>
+        <el-form-item label="站点">
+          <el-select
+            v-model="siteDetailSelectUpdateValue"
+            filterable
+            remote
+            reserve-keyword
+            placeholder="请选择站点"
+            remote-show-suffix
+            :remote-method="searchSites"
+            :loading="siteDetailSelectUpdateLoading"
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in siteDetailSelectUpdateOptions"
+              :key="item.id"
+              :label="item.site_name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="流程code">
+          <el-input
+            v-model="updateFormInline.flow_code"
+            placeholder="请输入流程code"
+          />
+        </el-form-item>
+        <el-form-item label="流程名称">
+          <el-input
+            v-model="updateFormInline.flow_name"
+            placeholder="请输入流程名称"
+          />
+        </el-form-item>
+        <el-form-item label="流程类型">
+          <el-select
+            v-model="updateFormInline.flow_rpa_type"
+            placeholder="请选择流程类型"
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in flowRpaTypeOptions"
+              :key="item.business_code"
+              :label="item.name_cn"
+              :value="Number(item.business_code)"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="执行环境">
+          <el-select
+            v-model="updateFormInline.flow_exe_env"
+            placeholder="请选择执行环境"
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in flowExeEnvOptions"
+              :key="item.business_code"
+              :label="item.name_cn"
+              :value="Number(item.business_code)"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="业务类型">
+          <el-select
+            v-model="updateFormInline.flow_biz_type"
+            placeholder="请选择业务类型"
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in flowBizTypeOptions"
+              :key="item.business_code"
+              :label="item.name_cn"
+              :value="Number(item.business_code)"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="最大重试次数">
+          <el-input-number
+            v-model="updateFormInline.max_retry_number"
+            :min="1"
+            :max="10"
+          />
+        </el-form-item>
+        <el-form-item label="最大执行时间(秒)">
+          <el-input-number
+            v-model="updateFormInline.max_exe_time"
+            :min="1800"
+            :max="36000"
+            :step="600"
+          />
+        </el-form-item>
+        <el-form-item label="重试code">
+          <el-select
+            v-model="updateFormRetryCodes"
+            placeholder="请选择重试code"
+            multiple
+            collapse-tags-tooltip
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in flowRetryCodeOptions"
+              :key="item.business_code"
+              :label="item.name_cn"
+              :value="item.business_code"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="是否启用">
+          <el-radio-group v-model="updateFormInline.is_active">
+            <el-radio value="1" size="large">启用</el-radio>
+            <el-radio value="0" size="large">不启用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="updateVisible = false">取消</el-button>
+          <el-button type="primary" @click="updateDialog"> 确认 </el-button>
         </div>
       </template>
     </el-dialog>

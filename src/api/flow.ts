@@ -105,3 +105,39 @@ export const updateFlow = (data: FlowUpdateReqModel) => {
     data: retData
   });
 };
+
+/** 获取流程类型 */
+export const getRpaTypes = () => {
+  const retData = buildRequestModel(null);
+  return http.request<ResponseBaseModel>("post", baseUrlApi(`flow/rpa/type`), {
+    data: retData
+  });
+};
+
+/** 获取执行环境 */
+export const getExeEnvs = () => {
+  const retData = buildRequestModel(null);
+  return http.request<ResponseBaseModel>("post", baseUrlApi("flow/exe/env"), {
+    data: retData
+  });
+};
+
+/** 获取业务类型 */
+export const getBizTypes = () => {
+  const retData = buildRequestModel(null);
+  return http.request<ResponseBaseModel>("post", baseUrlApi("flow/biz/type"), {
+    data: retData
+  });
+};
+
+/** 获取重试码 */
+export const getRetryCodes = () => {
+  const retData = buildRequestModel(null);
+  return http.request<ResponseBaseModel>(
+    "post",
+    baseUrlApi("flow/retry/code"),
+    {
+      data: retData
+    }
+  );
+};
