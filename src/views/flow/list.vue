@@ -81,6 +81,10 @@ const siteDetailSelectUpdateValue = ref<number>();
 const siteDetailSelectUpdateLoading = ref(false);
 const siteDetailSelectUpdateOptions = ref<SiteDetailModel[]>([]);
 
+// 站点模糊搜索(查询)
+const siteDetailSelectSearchLoading = ref(false);
+const siteDetailSelectSearchOptions = ref<SiteDetailModel[]>([]);
+
 // 流程类型/执行环境/业务类型
 const flowRpaTypeOptions = ref<MetaDataItemDetailModel[]>([]);
 const flowExeEnvOptions = ref<MetaDataItemDetailModel[]>([]);
@@ -146,6 +150,24 @@ const getData = (page, pageSize, prop, order) => {
 
 // 初始化
 getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
+
+// 搜索
+const onSubmit = () => {
+  getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
+};
+
+// 重置
+const cleanForm = () => {
+  formInline.id = undefined;
+  formInline.site_id = undefined;
+  formInline.flow_code = undefined;
+  formInline.flow_name = undefined;
+  formInline.flow_rpa_type = undefined;
+  formInline.flow_exe_env = undefined;
+  formInline.flow_biz_type = undefined;
+  formInline.retry_code = undefined;
+  formInline.is_active = undefined;
+};
 
 // 分页
 const handleCurrentChange = (val: number) => {
@@ -266,17 +288,25 @@ const addDialog = () => {
 const searchSites = (query: string) => {
   if (query) {
     siteDetailSelectLoading.value = true;
+    siteDetailSelectUpdateLoading.value = true;
+    siteDetailSelectSearchLoading.value = true;
 
     searchSitesByName(query).then(res => {
       if (res?.status) {
         siteDetailSelectOptions.value = res.data.data;
+        siteDetailSelectUpdateOptions.value = res.data.data;
+        siteDetailSelectSearchOptions.value = res.data.data;
       } else {
         message(res.message + "(" + res.data + ")", { type: "error" });
       }
       siteDetailSelectLoading.value = false;
+      siteDetailSelectUpdateLoading.value = false;
+      siteDetailSelectSearchLoading.value = false;
     });
   } else {
     siteDetailSelectOptions.value = [];
+    siteDetailSelectUpdateOptions.value = [];
+    siteDetailSelectSearchOptions.value = [];
   }
 };
 
@@ -363,7 +393,24 @@ const showUpdateDialog = (selectRow: FlowDetailModel) => {
 
   const row = selectValues.value[0];
 
-  updateFormInline.site_id = siteDetailSelectUpdateValue.value;
+  updateFormInline.id = row.id;
+  // 站点选项赋值
+  const siteDetailItem: SiteDetailModel = {
+    id: row.site_id,
+    site_name: row.site_name,
+    site_description: undefined,
+    is_active: undefined,
+    created_id: undefined,
+    created_time: undefined,
+    modify_id: undefined,
+    modify_time: undefined,
+    trace_id: undefined
+  };
+  siteDetailSelectUpdateOptions.value = [siteDetailItem];
+  siteDetailSelectUpdateValue.value = row.site_id;
+  updateFormInline.site_id = row.site_id;
+
+  // 其它赋值
   updateFormInline.flow_code = row.flow_code;
   updateFormInline.flow_name = row.flow_name;
   updateFormInline.flow_rpa_type = row.flow_rpa_type;
@@ -371,23 +418,23 @@ const showUpdateDialog = (selectRow: FlowDetailModel) => {
   updateFormInline.flow_biz_type = row.flow_biz_type;
   updateFormInline.max_retry_number = row.max_retry_number;
   updateFormInline.max_exe_time = row.max_exe_time;
-  if (updateFormRetryCodes.value.length === 0) {
-    message("请输入重试code", { type: "error" });
-    return;
-  }
-  updateFormInline.retry_code = updateFormRetryCodes.value.join(",");
-  updateFormInline.request_check_script = row.request_check_script;
-  updateFormInline.request_adapt_script = row.request_adapt_script;
-  updateFormInline.flow_exe_script = row.flow_exe_script;
-  updateFormInline.flow_result_handle_script = row.flow_result_handle_script;
+  updateFormInline.request_check_script = undefined;
+  updateFormInline.request_adapt_script = undefined;
+  updateFormInline.flow_exe_script = undefined;
+  updateFormInline.flow_result_handle_script = undefined;
   updateFormInline.is_active = row.is_active ? "1" : "0";
-  updateFormInline.id = row.id;
+
+  // 重试码赋值
+  updateFormRetryCodes.value = row.retry_code.split(",");
+  updateFormInline.retry_code = row.retry_code;
 };
+
 const updateDialog = () => {
   if (updateFormInline.id === undefined) {
     message("未选择数据", { type: "error" });
     return;
   }
+  updateFormInline.site_id = siteDetailSelectUpdateValue.value;
   if (updateFormInline.site_id === undefined) {
     message("请选择站点", { type: "error" });
     return;
@@ -420,6 +467,8 @@ const updateDialog = () => {
     message("请输入最大执行时间", { type: "error" });
     return;
   }
+
+  updateFormInline.retry_code = updateFormRetryCodes.value.join(",");
   if (updateFormInline.retry_code === undefined) {
     message("请输入重试code", { type: "error" });
     return;
@@ -454,7 +503,7 @@ const updateDialog = () => {
       );
       updateVisible.value = false;
     } else {
-      message(res.message + "(" + res.data?.message + ")", { type: "error" });
+      message(res.message + "(" + res.data + ")", { type: "error" });
     }
   });
 };
@@ -463,7 +512,119 @@ const updateDialog = () => {
   <div>
     <!-- 搜索表单行 -->
     <el-row style="padding-top: 30px">
-      <el-col :span="24">搜索表单行</el-col>
+      <el-col :span="24">
+        <el-form :inline="true" :model="formInline">
+          <el-form-item label="ID">
+            <el-input v-model="formInline.id" placeholder="请输入站点ID" />
+          </el-form-item>
+          <el-form-item label="站点名称">
+            <el-select
+              v-model="formInline.site_id"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请选择站点"
+              remote-show-suffix
+              :remote-method="searchSites"
+              :loading="siteDetailSelectSearchLoading"
+              style="width: 240px"
+            >
+              <el-option
+                v-for="item in siteDetailSelectSearchOptions"
+                :key="item.id"
+                :label="item.site_name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="流程code">
+            <el-input
+              v-model="formInline.flow_code"
+              placeholder="请输入流程code"
+            />
+          </el-form-item>
+          <el-form-item label="流程名称">
+            <el-input
+              v-model="formInline.flow_name"
+              placeholder="请输入流程名称"
+            />
+          </el-form-item>
+
+          <el-form-item label="流程类型">
+            <el-select
+              v-model="formInline.flow_rpa_type"
+              placeholder="请选择流程类型"
+              style="width: 240px"
+            >
+              <el-option
+                v-for="item in flowRpaTypeOptions"
+                :key="item.business_code"
+                :label="item.name_cn"
+                :value="Number(item.business_code)"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="执行环境">
+            <el-select
+              v-model="formInline.flow_exe_env"
+              placeholder="请选择执行环境"
+              style="width: 240px"
+            >
+              <el-option
+                v-for="item in flowExeEnvOptions"
+                :key="item.business_code"
+                :label="item.name_cn"
+                :value="Number(item.business_code)"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="业务类型">
+            <el-select
+              v-model="formInline.flow_biz_type"
+              placeholder="请选择业务类型"
+              style="width: 240px"
+            >
+              <el-option
+                v-for="item in flowBizTypeOptions"
+                :key="item.business_code"
+                :label="item.name_cn"
+                :value="Number(item.business_code)"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="重试code">
+            <el-select
+              v-model="formInline.retry_code"
+              placeholder="请选择重试code"
+              collapse-tags-tooltip
+              style="width: 240px"
+            >
+              <el-option
+                v-for="item in flowRetryCodeOptions"
+                :key="item.business_code"
+                :label="item.name_cn"
+                :value="item.business_code"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="是否启用">
+            <el-select
+              v-model="formInline.is_active"
+              placeholder="请选择"
+              style="width: 220px"
+            >
+              <el-option label="启用" value="true" />
+              <el-option label="不启用" value="false" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="onSubmit">查询</el-button>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="default" @click="cleanForm">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </el-col>
     </el-row>
 
     <!-- 分割线 -->
