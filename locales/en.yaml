@@ -71,6 +71,7 @@ menus:
   metaDataItemList: Meta Data Item List
   flow: Flow
   flowList: Flow List
+  flowDetail: Flow Detail
   pureFourZeroFour: "404"
   pureFourZeroOne: "403"
   pureFive: "500"

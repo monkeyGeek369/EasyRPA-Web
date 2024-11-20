@@ -71,6 +71,7 @@ menus:
   metaDataItemList: 元数据项列表
   flow: 流程
   flowList: 流程列表
+  flowDetail: 流程详情
   pureFourZeroFour: "404"
   pureFourZeroOne: "403"
   pureFive: "500"

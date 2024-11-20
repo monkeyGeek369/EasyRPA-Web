@@ -34,6 +34,8 @@ const size = ref<ComponentSize>("default");
 const disabled = ref(false);
 const background = ref(false);
 
+const router = useRouter();
+
 // 响应式参数
 const tableData = ref([]);
 const total = ref(0);
@@ -507,6 +509,15 @@ const updateDialog = () => {
     }
   });
 };
+
+// 详情页跳转
+const handleOperationClick = (row: FlowDetailModel) => {
+  const route = router.resolve({
+    path: "/flow/detail",
+    query: { id: row.id }
+  });
+  window.open(route.href, "_blank");
+};
 </script>
 <template>
   <div>
@@ -717,6 +728,14 @@ const updateDialog = () => {
                 @click="handleDelete(scope.row)"
               >
                 删除
+              </el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleOperationClick(scope.row)"
+              >
+                脚本
               </el-button>
             </template>
           </el-table-column>
