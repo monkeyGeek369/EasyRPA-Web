@@ -142,7 +142,7 @@ const saveScript = () => {
     <!-- 分割线 -->
     <el-divider />
 
-    <div style=" margin-top: 20px;text-align: center">
+    <div style="margin-top: 20px; text-align: center">
       <el-button type="primary" @click="saveVisible = true">保存</el-button>
     </div>
 
