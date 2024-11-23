@@ -518,6 +518,42 @@ const handleOperationClick = (row: FlowDetailModel, type: string) => {
   });
   window.open(route.href, "_blank");
 };
+
+// 选中行
+const handleSelectionChange = (rows: FlowDetailModel[]) => {
+  selectValues.value = rows;
+};
+
+// 流程复制
+const copyFlow = () => {
+  if (selectValues.value.length === 0) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+  if (selectValues.value.length > 1) {
+    message("只能选择一条数据", { type: "error" });
+    return;
+  }
+
+  let copyValue = selectValues.value[0];
+  copyValue.id = undefined;
+  copyValue.flow_code = copyValue.flow_code + "_copy";
+  copyValue.flow_name = copyValue.flow_name + "_copy";
+
+  addFlow(copyValue).then(res => {
+    if (res?.status) {
+      message(res.message, { type: "success" });
+      getData(
+        currentPage.value,
+        pageSize.value,
+        sortProp.value,
+        sortOrder.value
+      );
+    } else {
+      message(res.message + "(" + res.data + ")", { type: "error" });
+    }
+  });
+};
 </script>
 <template>
   <div>
@@ -647,6 +683,7 @@ const handleOperationClick = (row: FlowDetailModel, type: string) => {
         <el-button type="primary" round @click="addVisible = true"
           >新增</el-button
         >
+        <el-button type="primary" round @click="copyFlow">复制</el-button>
       </el-col>
     </el-row>
 
@@ -663,7 +700,9 @@ const handleOperationClick = (row: FlowDetailModel, type: string) => {
           :border="true"
           style="width: 100%; height: 100%"
           @sort-change="sortChange"
+          @selection-change="handleSelectionChange"
         >
+          <el-table-column type="selection" width="55" />
           <el-table-column prop="id" label="ID" width="80" sortable="custom" />
           <el-table-column prop="site_name" label="站点名称" width="180" />
           <el-table-column prop="flow_code" label="流程code" width="180" />
