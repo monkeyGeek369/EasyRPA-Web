@@ -511,10 +511,10 @@ const updateDialog = () => {
 };
 
 // 详情页跳转
-const handleOperationClick = (row: FlowDetailModel) => {
+const handleOperationClick = (row: FlowDetailModel, type: string) => {
   const route = router.resolve({
     path: "/flow/detail",
-    query: { id: row.id }
+    query: { id: row.id, type: type }
   });
   window.open(route.href, "_blank");
 };
@@ -711,7 +711,7 @@ const handleOperationClick = (row: FlowDetailModel) => {
             label="是否启用"
             :formatter="formatBoolean"
           />
-          <el-table-column fixed="right" label="操作" min-width="120">
+          <el-table-column fixed="right" label="操作" min-width="100">
             <template #default="scope">
               <el-button
                 link
@@ -729,13 +729,42 @@ const handleOperationClick = (row: FlowDetailModel) => {
               >
                 删除
               </el-button>
+            </template>
+          </el-table-column>
+          <el-table-column fixed="right" label="脚本" min-width="100">
+            <template #default="scope">
               <el-button
                 link
                 type="primary"
                 size="small"
-                @click="handleOperationClick(scope.row)"
+                style="margin-left: 11px"
+                @click="handleOperationClick(scope.row, 'check')"
               >
-                脚本
+                校验脚本
+              </el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleOperationClick(scope.row, 'adapt')"
+              >
+                适配脚本
+              </el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleOperationClick(scope.row, 'execute')"
+              >
+                执行脚本
+              </el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleOperationClick(scope.row, 'response')"
+              >
+                响应脚本
               </el-button>
             </template>
           </el-table-column>

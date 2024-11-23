@@ -106,6 +106,18 @@ export const updateFlow = (data: FlowUpdateReqModel) => {
   });
 };
 
+/** 更新流程 */
+export const updateFlowScript = (data: FlowUpdateReqModel) => {
+  const retData = buildRequestModel(data);
+  return http.request<ResponseBaseModel>(
+    "post",
+    baseUrlApi(`flow/update/script`),
+    {
+      data: retData
+    }
+  );
+};
+
 /** 获取流程类型 */
 export const getRpaTypes = () => {
   const retData = buildRequestModel(null);

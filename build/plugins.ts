@@ -15,12 +15,19 @@ import { themePreprocessorPlugin } from "@pureadmin/theme";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 import { genScssMultipleScopeVars } from "../src/layout/theme";
 import { vitePluginFakeServer } from "vite-plugin-fake-server";
+import monacoEditorPlugin, {
+  type IMonacoEditorOpts
+} from "vite-plugin-monaco-editor";
 
 export function getPluginsList(
   VITE_CDN: boolean,
   VITE_COMPRESSION: ViteCompression
 ): PluginOption[] {
   const lifecycle = process.env.npm_lifecycle_event;
+  const monacoEditorPluginDefault = (monacoEditorPlugin as any).default as (
+    options: IMonacoEditorOpts
+  ) => any;
+
   return [
     vue(),
     // jsx、tsx语法支持
@@ -28,6 +35,16 @@ export function getPluginsList(
     VueI18nPlugin({
       jitCompilation: false,
       include: [pathResolve("../locales/**")]
+    }),
+
+    monacoEditorPluginDefault({
+      languageWorkers: ["typescript", "editorWorkerService"],
+      customWorkers: [
+        {
+          label: "graphql",
+          entry: "monaco-graphql/dist/graphql.worker"
+        }
+      ]
     }),
     checker({
       typescript: true,
