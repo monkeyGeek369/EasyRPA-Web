@@ -28,6 +28,16 @@ export default {
         showLink: false,
         title: $t("menus.flowDetail")
       }
+    },
+    {
+      path: "/flow/config",
+      name: "flow_config",
+      component: () => import("@/views/flow/config.vue"),
+      meta: {
+        icon: "ri:information-line",
+        showLink: true,
+        title: $t("menus.flowConfig")
+      }
     }
   ]
 } satisfies RouteConfigsTable;

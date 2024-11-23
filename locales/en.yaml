@@ -72,6 +72,7 @@ menus:
   flow: Flow
   flowList: Flow List
   flowDetail: Flow Detail
+  flowConfig: Flow Config
   pureFourZeroFour: "404"
   pureFourZeroOne: "403"
   pureFive: "500"

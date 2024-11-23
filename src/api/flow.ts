@@ -153,3 +153,15 @@ export const getRetryCodes = () => {
     }
   );
 };
+
+/** 模糊查询流程 */
+export const searchDimFlow = (data?: string) => {
+  const retData = buildRequestModel(data);
+  return http.request<ResponseBaseModel>(
+    "post",
+    baseUrlApi("flow/search/dim"),
+    {
+      data: retData
+    }
+  );
+};

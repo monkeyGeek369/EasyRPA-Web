@@ -70,8 +70,13 @@ getData();
 
 // 日期格式化
 const dateFormat = (row, column) => {
+  let time = row[column.property];
+  if (!time) {
+    return "";
+  }
   const date = new Date(row[column.property]);
   return date.toLocaleString("zh-CN", {
+    timeZone: "UTC",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

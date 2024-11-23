@@ -1,26 +1,20 @@
 <script setup lang="ts">
-import { useRouter } from "vue-router";
-import { computed, ref, reactive } from "vue";
+import { ref, reactive } from "vue";
 import type { ComponentSize } from "element-plus";
-import { message } from "@/utils/message";
-import { Delete, Edit } from "@element-plus/icons-vue";
-import { is } from "@pureadmin/utils";
 import type {
-  MetaDataSearchReqModel,
-  MetaDataDetailModel,
-  MetaDataAddReqModel,
-  MetaDataUpdateReqModel
-} from "@/api/metaData";
+  FlowConfigSearchReqModel,
+  FlowConfigDetailModel,
+  FlowConfigAddReqModel,
+  FlowConfigUpdateReqModel
+} from "@/api/flowConfig";
 import {
-  searchMetaData,
-  deleteMetaData,
-  addMetaData,
-  updateMetaData
-} from "@/api/metaData";
-
-defineOptions({
-  name: "metaDataList"
-});
+  searchFlowConfigs,
+  deleteFlowConfig,
+  addFlowConfig,
+  updateFlowConfig
+} from "@/api/flowConfig";
+import { message } from "@/utils/message";
+import { searchDimFlow } from "@/api/flow";
 
 // 控制组件大小
 const size = ref<ComponentSize>("default");
@@ -36,37 +30,52 @@ const sortProp = ref("id");
 const sortOrder = ref("desc");
 const formInline = reactive({
   id: undefined,
-  name: undefined,
-  code: undefined,
-  description: undefined,
+  flow_id: undefined,
+  config_name: undefined,
+  config_description: undefined,
   is_active: undefined
 });
-const selectValues = ref<MetaDataDetailModel[]>([]);
+const selectValues = ref<FlowConfigDetailModel[]>([]);
 const deleteVisible = ref(false);
-const addFormInline = reactive<MetaDataAddReqModel>({
-  name: undefined,
-  code: undefined,
-  description: undefined
+const addFormInline = reactive<FlowConfigAddReqModel>({
+  flow_id: undefined,
+  config_name: undefined,
+  config_description: undefined,
+  config_json: undefined
 });
 const addVisible = ref(false);
 const updateFormInline = reactive({
   id: undefined,
-  name: undefined,
-  code: undefined,
-  description: undefined,
+  flow_id: undefined,
+  config_name: undefined,
+  config_description: undefined,
+  config_json: undefined,
   is_active: undefined
 });
 const updateVisible = ref(false);
-const router = useRouter();
+
+// 站点模糊搜索(新增)
+const flowDetailSelectValue = ref<number>();
+const flowDetailSelectLoading = ref(false);
+const flowDetailSelectOptions = ref<FlowConfigDetailModel[]>([]);
+
+// 站点模糊搜索(修改)
+const flowDetailSelectUpdateValue = ref<number>();
+const flowDetailSelectUpdateLoading = ref(false);
+const flowDetailSelectUpdateOptions = ref<FlowConfigDetailModel[]>([]);
+
+// 站点模糊搜索(查询)
+const flowDetailSelectSearchLoading = ref(false);
+const flowDetailSelectSearchOptions = ref<FlowConfigDetailModel[]>([]);
 
 // 分页数据获取
 const getData = (page, pageSize, prop, order) => {
   // search sites
-  const datatest: MetaDataSearchReqModel = {
+  const datatest: FlowConfigSearchReqModel = {
     id: formInline.id,
-    name: formInline.name,
-    code: formInline.code,
-    description: formInline.description,
+    flow_id: formInline.flow_id,
+    config_name: formInline.config_name,
+    config_description: formInline.config_description,
     is_active:
       formInline.is_active === undefined
         ? null
@@ -78,13 +87,13 @@ const getData = (page, pageSize, prop, order) => {
     sorts: [{ prop: prop, order: order }]
   };
 
-  searchMetaData(datatest).then(res => {
+  searchFlowConfigs(datatest).then(res => {
     if (res?.status) {
       total.value = res.data.total;
       tableData.value = res.data.data;
       //console.log(tableData.value);
     } else {
-      message(res.message + "(" + res.data?.message + ")", { type: "error" });
+      message(res.message + "(" + res.data + ")", { type: "error" });
     }
   });
 };
@@ -149,14 +158,14 @@ const onSubmit = () => {
 // 重置
 const cleanForm = () => {
   formInline.id = undefined;
-  formInline.name = undefined;
-  formInline.code = undefined;
-  formInline.description = undefined;
+  formInline.flow_id = undefined;
+  formInline.config_name = undefined;
+  formInline.config_description = undefined;
   formInline.is_active = undefined;
 };
 
 // 删除
-const handleDelete = (row: MetaDataDetailModel) => {
+const handleDelete = (row: FlowConfigDetailModel) => {
   if (row == undefined) {
     message("未选择数据", { type: "error" });
     return;
@@ -171,7 +180,7 @@ const handleDeleteConfirm = () => {
     return;
   }
 
-  Promise.all(selectValues.value.map(v => deleteMetaData(v.id))).then(
+  Promise.all(selectValues.value.map(v => deleteFlowConfig(v.id))).then(
     responses => {
       responses.forEach(res => {
         if (res?.status) {
@@ -190,27 +199,33 @@ const handleDeleteConfirm = () => {
 
 // 新增
 const addDialog = () => {
-  if (addFormInline.name === undefined) {
-    message("请输入元数据名称", { type: "error" });
+  addFormInline.flow_id = flowDetailSelectValue.value;
+  if (addFormInline.flow_id === undefined) {
+    message("请选择流程", { type: "error" });
     return;
   }
-  if (addFormInline.code === undefined) {
-    message("请输入元数据code", { type: "error" });
+  if (addFormInline.config_name === undefined) {
+    message("请输入配置名称", { type: "error" });
     return;
   }
-  if (addFormInline.description === undefined) {
-    message("请输入元数据描述", { type: "error" });
+  if (addFormInline.config_description === undefined) {
+    message("请输入配置描述", { type: "error" });
+    return;
+  }
+  if (addFormInline.config_json === undefined) {
+    message("请输入配置信息", { type: "error" });
     return;
   }
 
-  addMetaData(addFormInline).then(res => {
+  addFlowConfig(addFormInline).then(res => {
     if (res?.status) {
       message(res.message, { type: "success" });
       onSubmit();
       // clean
-      addFormInline.name = undefined;
-      addFormInline.code = undefined;
-      addFormInline.description = undefined;
+      addFormInline.flow_id = undefined;
+      addFormInline.config_name = undefined;
+      addFormInline.config_description = undefined;
+      addFormInline.config_json = undefined;
       addVisible.value = false;
     } else {
       message(res.message + "(" + res.data + ")", { type: "error" });
@@ -219,13 +234,13 @@ const addDialog = () => {
 };
 
 // 修改
-const showUpdateDialog = (showRow: MetaDataDetailModel) => {
-  if (showRow == undefined) {
+const showUpdateDialog = (selectRow: FlowConfigDetailModel) => {
+  if (selectRow == undefined) {
     message("未选择数据", { type: "error" });
     return;
   }
 
-  selectValues.value = [showRow];
+  selectValues.value = [selectRow];
 
   if (selectValues.value.length === 0) {
     message("未选择数据", { type: "error" });
@@ -238,9 +253,10 @@ const showUpdateDialog = (showRow: MetaDataDetailModel) => {
   updateVisible.value = true;
 
   const row = selectValues.value[0];
-  updateFormInline.name = row.name;
-  updateFormInline.code = row.code;
-  updateFormInline.description = row.description;
+  flowDetailSelectUpdateValue.value = row.flow_id;
+  updateFormInline.config_name = row.config_name;
+  updateFormInline.config_description = row.config_description;
+  updateFormInline.config_json = row.config_json;
   updateFormInline.is_active = row.is_active ? "1" : "0";
   updateFormInline.id = row.id;
 };
@@ -249,50 +265,70 @@ const updateDialog = () => {
     message("未选择数据", { type: "error" });
     return;
   }
-  if (updateFormInline.name === undefined) {
-    message("请输入元数据名称", { type: "error" });
+  updateFormInline.flow_id = flowDetailSelectUpdateValue.value;
+  if (updateFormInline.flow_id === undefined) {
+    message("请选择流程", { type: "error" });
     return;
   }
-  if (updateFormInline.code === undefined) {
-    message("请输入元数据code", { type: "error" });
+  if (updateFormInline.config_name === undefined) {
+    message("请输入配置名称", { type: "error" });
     return;
   }
-  if (updateFormInline.description === undefined) {
-    message("请输入元数据描述", { type: "error" });
+  if (updateFormInline.config_description === undefined) {
+    message("请输入配置描述", { type: "error" });
+    return;
+  }
+  if (updateFormInline.config_json === undefined) {
+    message("请输入配置信息", { type: "error" });
     return;
   }
 
-  const updateData: MetaDataUpdateReqModel = {
+  const updateData: FlowConfigUpdateReqModel = {
     id: updateFormInline.id,
-    name: updateFormInline.name,
-    code: updateFormInline.code,
-    description: updateFormInline.description,
+    flow_id: updateFormInline.flow_id,
+    config_name: updateFormInline.config_name,
+    config_description: updateFormInline.config_description,
+    config_json: updateFormInline.config_json,
     is_active: updateFormInline.is_active == "1" ? true : false
   };
 
-  updateMetaData(updateData).then(res => {
-    //console.log(res);
+  updateFlowConfig(updateData).then(res => {
     if (res?.status) {
       message(res.message, { type: "success" });
       onSubmit();
       updateVisible.value = false;
     } else {
-      message(res.message + "(" + res.data + ")", { type: "error" });
+      message(res.message + "(" + res.data?.message + ")", { type: "error" });
     }
   });
 };
 
-// 元数据项配置
-const handleOperationClick = (row: MetaDataDetailModel) => {
-  //console.log(row);
-  const route = router.resolve({
-    path: "/metaData/item/list",
-    query: { id: row.id }
-  });
-  window.open(route.href, "_blank");
+// 站点模糊搜索
+const searchFlows = (query: string) => {
+  if (query) {
+    flowDetailSelectLoading.value = true;
+    flowDetailSelectUpdateLoading.value = true;
+    flowDetailSelectSearchLoading.value = true;
+
+    searchDimFlow(query).then(res => {
+      if (res?.status) {
+        flowDetailSelectOptions.value = res.data.data;
+        flowDetailSelectUpdateOptions.value = res.data.data;
+        flowDetailSelectSearchOptions.value = res.data.data;
+      } else {
+        message(res.message + "(" + res.data + ")", { type: "error" });
+      }
+      flowDetailSelectLoading.value = false;
+      flowDetailSelectUpdateLoading.value = false;
+      flowDetailSelectSearchLoading.value = false;
+    });
+  } else {
+    flowDetailSelectOptions.value = [];
+    flowDetailSelectUpdateOptions.value = [];
+    flowDetailSelectSearchOptions.value = [];
+  }
 };
 </script>
-
 <template>
   <div>
     <!-- 搜索表单行 -->
@@ -300,24 +336,38 @@ const handleOperationClick = (row: MetaDataDetailModel) => {
       <el-col :span="24">
         <el-form :inline="true" :model="formInline">
           <el-form-item label="ID">
-            <el-input v-model="formInline.id" placeholder="请输入元数据ID" />
+            <el-input v-model="formInline.id" placeholder="请输入配置id" />
           </el-form-item>
-          <el-form-item label="元数据名称">
+          <el-form-item label="流程名称">
+            <el-select
+              v-model="formInline.flow_id"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请选择流程"
+              remote-show-suffix
+              :remote-method="searchFlows"
+              :loading="flowDetailSelectSearchLoading"
+              style="width: 240px"
+            >
+              <el-option
+                v-for="item in flowDetailSelectSearchOptions"
+                :key="item.id"
+                :label="item.flow_name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="配置名称">
             <el-input
-              v-model="formInline.name"
-              placeholder="请输入元数据名称"
+              v-model="formInline.config_name"
+              placeholder="请输入配置名称"
             />
           </el-form-item>
-          <el-form-item label="元数据code">
+          <el-form-item label="配置描述">
             <el-input
-              v-model="formInline.code"
-              placeholder="请输入元数据code"
-            />
-          </el-form-item>
-          <el-form-item label="元数据描述">
-            <el-input
-              v-model="formInline.description"
-              placeholder="请输入元数据描述"
+              v-model="formInline.config_description"
+              placeholder="请输入配置描述"
             />
           </el-form-item>
           <el-form-item label="是否启用">
@@ -367,9 +417,34 @@ const handleOperationClick = (row: MetaDataDetailModel) => {
           @sort-change="sortChange"
         >
           <el-table-column prop="id" label="ID" width="80" sortable="custom" />
-          <el-table-column prop="name" label="元数据名称" width="180" />
-          <el-table-column prop="code" label="元数据code" width="180" />
-          <el-table-column prop="description" label="元数据描述" width="180" />
+          <el-table-column
+            prop="flow_code"
+            label="流程code"
+            width="180"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="flow_name"
+            label="流程名称"
+            width="180"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="config_name"
+            label="配置名称"
+            width="180"
+            show-overflow-tooltip
+          /><el-table-column
+            prop="config_description"
+            label="配置描述"
+            width="180"
+            show-overflow-tooltip
+          /><el-table-column
+            prop="config_json"
+            label="配置信息"
+            width="180"
+            show-overflow-tooltip
+          />
           <el-table-column prop="created_id" label="创建人ID" />
           <el-table-column
             prop="created_time"
@@ -389,14 +464,6 @@ const handleOperationClick = (row: MetaDataDetailModel) => {
           />
           <el-table-column fixed="right" label="操作" min-width="120">
             <template #default="scope">
-              <el-button
-                link
-                type="primary"
-                size="small"
-                @click="handleOperationClick(scope.row)"
-              >
-                配置
-              </el-button>
               <el-button
                 link
                 type="primary"
@@ -454,22 +521,42 @@ const handleOperationClick = (row: MetaDataDetailModel) => {
     <!-- 新增对话框 -->
     <el-dialog v-model="addVisible" title="新增" width="500">
       <el-form :model="addFormInline">
-        <el-form-item label="元数据名称">
+        <el-form-item label="流程">
+          <el-select
+            v-model="flowDetailSelectValue"
+            filterable
+            remote
+            reserve-keyword
+            placeholder="请选择站点"
+            remote-show-suffix
+            :remote-method="searchFlows"
+            :loading="flowDetailSelectLoading"
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in flowDetailSelectOptions"
+              :key="item.id"
+              :label="item.flow_name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="配置名称">
           <el-input
-            v-model="addFormInline.name"
-            placeholder="请输入元数据名称"
+            v-model="addFormInline.config_name"
+            placeholder="请输入配置名称"
           />
         </el-form-item>
-        <el-form-item label="元数据code">
+        <el-form-item label="配置描述">
           <el-input
-            v-model="addFormInline.code"
-            placeholder="请输入元数据code"
+            v-model="addFormInline.config_description"
+            placeholder="请输入配置描述"
           />
         </el-form-item>
-        <el-form-item label="元数据描述">
+        <el-form-item label="配置信息">
           <el-input
-            v-model="addFormInline.description"
-            placeholder="请输入元数据描述"
+            v-model="addFormInline.config_json"
+            placeholder="请输入配置信息"
           />
         </el-form-item>
       </el-form>
@@ -484,25 +571,45 @@ const handleOperationClick = (row: MetaDataDetailModel) => {
     <!-- 修改对话框 -->
     <el-dialog v-model="updateVisible" title="编辑" width="500">
       <el-form :model="updateFormInline">
-        <el-form-item label="元数据ID">
+        <el-form-item label="配置ID">
           <el-input v-model="updateFormInline.id" disabled />
         </el-form-item>
-        <el-form-item label="元数据名称">
+        <el-form-item label="流程名称">
+          <el-select
+            v-model="flowDetailSelectUpdateValue"
+            filterable
+            remote
+            reserve-keyword
+            placeholder="请选择流程"
+            remote-show-suffix
+            :remote-method="searchFlows"
+            :loading="flowDetailSelectUpdateLoading"
+            style="width: 240px"
+          >
+            <el-option
+              v-for="item in flowDetailSelectUpdateOptions"
+              :key="item.id"
+              :label="item.flow_name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="配置名称">
           <el-input
-            v-model="updateFormInline.name"
-            placeholder="请输入元数据名称"
+            v-model="updateFormInline.config_name"
+            placeholder="请输入配置名称"
           />
         </el-form-item>
-        <el-form-item label="元数据code">
+        <el-form-item label="配置描述">
           <el-input
-            v-model="updateFormInline.code"
-            placeholder="请输入元数据code"
+            v-model="updateFormInline.config_description"
+            placeholder="请输入配置描述"
           />
         </el-form-item>
-        <el-form-item label="元数据描述">
+        <el-form-item label="配置信息">
           <el-input
-            v-model="updateFormInline.description"
-            placeholder="请输入元数据描述"
+            v-model="updateFormInline.config_json"
+            placeholder="请输入配置信息"
           />
         </el-form-item>
         <el-form-item label="是否启用">
