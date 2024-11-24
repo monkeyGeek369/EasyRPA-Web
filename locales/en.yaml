@@ -75,6 +75,7 @@ menus:
   flowConfig: Flow Config
   job: Job
   jobList: Job List
+  jobRecord: Job Record
   pureFourZeroFour: "404"
   pureFourZeroOne: "403"
   pureFive: "500"

@@ -27,6 +27,8 @@ defineOptions({
   name: "job_list"
 });
 
+const router = useRouter();
+
 // 控制组件大小
 const size = ref<ComponentSize>("default");
 const disabled = ref(false);
@@ -485,6 +487,15 @@ const handleCopyConfirm = () => {
 
   copyVisible.value = false;
 };
+
+// 详情页跳转
+const handleOperationClick = (row: JobDetailModel) => {
+  const route = router.resolve({
+    path: "/job/record",
+    query: { id: row.id }
+  });
+  window.open(route.href, "_blank");
+};
 </script>
 
 <template>
@@ -670,7 +681,7 @@ const handleCopyConfirm = () => {
             label="是否启用"
             :formatter="formatBoolean"
           />
-          <el-table-column fixed="right" label="操作" min-width="120">
+          <el-table-column fixed="right" label="操作" min-width="150">
             <template #default="scope">
               <el-button
                 link
@@ -687,6 +698,14 @@ const handleCopyConfirm = () => {
                 @click="handleDelete(scope.row)"
               >
                 删除
+              </el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleOperationClick(scope.row)"
+              >
+                记录
               </el-button>
             </template>
           </el-table-column>

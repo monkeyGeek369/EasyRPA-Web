@@ -18,6 +18,16 @@ export default {
         icon: "ri:timer-2-fill",
         title: $t("menus.jobList")
       }
+    },
+    {
+      path: "/job/record",
+      name: "job_record",
+      component: () => import("@/views/job/record.vue"),
+      meta: {
+        icon: "ri:timer-2-fill",
+        showLink: false,
+        title: $t("menus.jobRecord")
+      }
     }
   ]
 } satisfies RouteConfigsTable;
