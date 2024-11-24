@@ -73,6 +73,8 @@ menus:
   flowList: Flow List
   flowDetail: Flow Detail
   flowConfig: Flow Config
+  job: Job
+  jobList: Job List
   pureFourZeroFour: "404"
   pureFourZeroOne: "403"
   pureFive: "500"

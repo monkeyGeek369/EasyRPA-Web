@@ -73,6 +73,8 @@ menus:
   flowList: 流程列表
   flowDetail: 流程详情
   flowConfig: 流程配置
+  job: 定时任务
+  jobList: 定时任务列表
   pureFourZeroFour: "404"
   pureFourZeroOne: "403"
   pureFive: "500"

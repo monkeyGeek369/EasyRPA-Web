@@ -14,9 +14,16 @@ import WebcamLine from "@iconify-icons/ri/webcam-line";
 import ListIndefinite from "@iconify-icons/ri/list-indefinite";
 import FlowChart from "@iconify-icons/ri/flow-chart";
 import StackOverFlow from "@iconify-icons/ri/stack-overflow-fill";
+import TimerFull from "@iconify-icons/ri/timer-2-fill";
+import JobData from "@iconify-icons/ri/database-2-fill";
+import JobRecord from "@iconify-icons/ri/record-mail-fill";
+
 addIcon("ri:search-line", Search);
 addIcon("ri:information-line", InformationLine);
 addIcon("ri:webcam-line", WebcamLine);
 addIcon("ri:list-indefinite", ListIndefinite);
 addIcon("ri:flow-chart", FlowChart);
 addIcon("ri:stack-overflow-fill", StackOverFlow);
+addIcon("ri:timer-2-fill", TimerFull);
+addIcon("ri:timeline-view", JobData);
+addIcon("ri:record-mail-fill", JobRecord);

@@ -90,3 +90,15 @@ export const updateFlowConfig = (data: FlowConfigUpdateReqModel) => {
     }
   );
 };
+
+/** 模糊查询流程配置 */
+export const searchConfigDim = (data?: string) => {
+  const retData = buildRequestModel(data);
+  return http.request<ResponseBaseModel>(
+    "post",
+    baseUrlApi("flow/config/dim"),
+    {
+      data: retData
+    }
+  );
+};

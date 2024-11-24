@@ -254,6 +254,7 @@ const showUpdateDialog = (selectRow: FlowConfigDetailModel) => {
 
   const row = selectValues.value[0];
   flowDetailSelectUpdateValue.value = row.flow_id;
+  searchFlows(row.flow_name);
   updateFormInline.config_name = row.config_name;
   updateFormInline.config_description = row.config_description;
   updateFormInline.config_json = row.config_json;
@@ -527,7 +528,7 @@ const searchFlows = (query: string) => {
             filterable
             remote
             reserve-keyword
-            placeholder="请选择站点"
+            placeholder="请选择流程"
             remote-show-suffix
             :remote-method="searchFlows"
             :loading="flowDetailSelectLoading"
