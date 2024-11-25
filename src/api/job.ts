@@ -20,6 +20,7 @@ export interface JobSearchReqModel extends RequestPageBaseModel {
 export interface JobDetailModel extends ResponseDoBaseModel {
   id: number;
   job_name: string;
+  data_count: number;
   cron: string;
   flow_code: string;
   flow_name: string;

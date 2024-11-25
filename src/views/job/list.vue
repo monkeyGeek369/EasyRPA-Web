@@ -496,6 +496,14 @@ const handleOperationClick = (row: JobDetailModel) => {
   });
   window.open(route.href, "_blank");
 };
+
+const handleOperationDataClick = (row: JobDetailModel) => {
+  const route = router.resolve({
+    path: "/job/data",
+    query: { id: row.id }
+  });
+  window.open(route.href, "_blank");
+};
 </script>
 
 <template>
@@ -643,20 +651,43 @@ const handleOperationClick = (row: JobDetailModel) => {
         >
           <el-table-column type="selection" width="55" />
           <el-table-column prop="id" label="ID" width="80" sortable="custom" />
-          <el-table-column prop="job_name" label="job名称" width="180" />
-          <el-table-column prop="cron" label="cron" width="180" />
-          <el-table-column prop="flow_code" label="流程code" width="180" />
-          <el-table-column prop="flow_name" label="流程名称" width="180" />
+          <el-table-column
+            prop="job_name"
+            label="job名称"
+            width="180"
+            show-overflow-tooltip
+          />
+          <el-table-column prop="data_count" label="数据量" width="80" />
+          <el-table-column
+            prop="cron"
+            label="cron"
+            width="180"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="flow_code"
+            label="流程code"
+            width="180"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="flow_name"
+            label="流程名称"
+            width="180"
+            show-overflow-tooltip
+          />
           <el-table-column
             prop="flow_config_name"
             label="流程配置名称"
             width="180"
+            show-overflow-tooltip
           />
           <el-table-column prop="job_type_name" label="job类型" width="180" />
           <el-table-column
             prop="parent_job_name"
             label="父job名称"
             width="180"
+            show-overflow-tooltip
           />
           <el-table-column
             prop="current_data_id"
@@ -669,19 +700,21 @@ const handleOperationClick = (row: JobDetailModel) => {
             prop="created_time"
             label="创建日期"
             :formatter="dateFormat"
+            show-overflow-tooltip
           />
           <el-table-column prop="modify_id" label="修改人ID" />
           <el-table-column
             prop="modify_time"
             label="修改日期"
             :formatter="dateFormat"
+            show-overflow-tooltip
           />
           <el-table-column
             prop="is_active"
             label="是否启用"
             :formatter="formatBoolean"
           />
-          <el-table-column fixed="right" label="操作" min-width="150">
+          <el-table-column fixed="right" label="操作" min-width="110">
             <template #default="scope">
               <el-button
                 link
@@ -706,6 +739,14 @@ const handleOperationClick = (row: JobDetailModel) => {
                 @click="handleOperationClick(scope.row)"
               >
                 记录
+              </el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleOperationDataClick(scope.row)"
+              >
+                数据
               </el-button>
             </template>
           </el-table-column>
