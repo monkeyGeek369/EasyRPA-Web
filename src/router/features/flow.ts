@@ -38,6 +38,16 @@ export default {
         showLink: true,
         title: $t("menus.flowConfig")
       }
+    },
+    {
+      path: "/flow/task/list",
+      name: "flow_task_list",
+      component: () => import("@/views/flow/taskList.vue"),
+      meta: {
+        icon: "ri:list-indefinite",
+        showLink: true,
+        title: $t("menus.taskList")
+      }
     }
   ]
 } satisfies RouteConfigsTable;

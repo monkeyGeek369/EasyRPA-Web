@@ -73,6 +73,7 @@ menus:
   flowList: Flow List
   flowDetail: Flow Detail
   flowConfig: Flow Config
+  taskList: Task List
   job: Job
   jobList: Job List
   jobRecord: Job Record

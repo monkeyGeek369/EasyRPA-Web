@@ -73,6 +73,7 @@ menus:
   flowList: 流程列表
   flowDetail: 流程详情
   flowConfig: 流程配置
+  taskList: 任务列表
   job: 定时任务
   jobList: 定时任务列表
   jobRecord: 定时任务日志
