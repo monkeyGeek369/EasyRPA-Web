@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 import { ref, reactive } from "vue";
 import type { ComponentSize } from "element-plus";
-import type { TaskSearchReqModel } from "@/api/flowTask";
+import type { TaskSearchReqModel, TaskDetailModel } from "@/api/flowTask";
 import { searchFlowTasks } from "@/api/flowTask";
 import { message } from "@/utils/message";
 
-const route = useRoute();
+const router = useRouter();
 
 // 控制组件大小
 const size = ref<ComponentSize>("default");
@@ -123,6 +123,15 @@ const cleanForm = () => {
   formInline.result_code = undefined;
   formInline.result_message = undefined;
   formInline.result_data = undefined;
+};
+
+// 详情页跳转
+const toTaskDetail = (row: TaskDetailModel) => {
+  const route = router.resolve({
+    path: "/flow/task/taskDetail",
+    query: { id: row.id }
+  });
+  window.open(route.href, "_blank");
 };
 </script>
 
@@ -241,6 +250,19 @@ const cleanForm = () => {
             label="结果code"
             show-overflow-tooltip
           />
+          <el-table-column fixed="right" label="操作" min-width="100">
+            <template #default="scope">
+              <el-button
+                link
+                type="primary"
+                size="small"
+                style="margin-left: 11px"
+                @click="toTaskDetail(scope.row)"
+              >
+                详情
+              </el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </el-col>
     </el-row>

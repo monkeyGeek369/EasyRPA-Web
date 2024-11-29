@@ -51,7 +51,9 @@ app.component("Perms", Perms);
 import "tippy.js/dist/tippy.css";
 import "tippy.js/themes/light.css";
 import VueTippy from "vue-tippy";
+import JsonViewer from "vue-json-viewer";
 app.use(VueTippy);
+app.use(JsonViewer);
 
 getPlatformConfig(app).then(async config => {
   setupStore(app);

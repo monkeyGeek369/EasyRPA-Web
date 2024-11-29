@@ -57,3 +57,11 @@ export const searchFlowTasks = (data?: TaskSearchReqModel) => {
     { data: retData }
   );
 };
+
+/** 查询 flow task*/
+export const getFlowTaskById = (data?: number) => {
+  const retData = buildRequestModel(data);
+  return http.request<ResponseBaseModel>("post", baseUrlApi("flow/task/one"), {
+    data: retData
+  });
+};
