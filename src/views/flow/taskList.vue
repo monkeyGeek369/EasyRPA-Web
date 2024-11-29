@@ -2,9 +2,21 @@
 import { useRouter } from "vue-router";
 import { ref, reactive } from "vue";
 import type { ComponentSize } from "element-plus";
-import type { TaskSearchReqModel, TaskDetailModel } from "@/api/flowTask";
-import { searchFlowTasks } from "@/api/flowTask";
+import type {
+  TaskSearchReqModel,
+  MetaDataBaseModel,
+  TaskDetailModel
+} from "@/api/flowTask";
+import {
+  searchFlowTasks,
+  getTaskSubSource,
+  getTaskStatus
+} from "@/api/flowTask";
 import { message } from "@/utils/message";
+import { searchSitesByName } from "@/api/site";
+import type { SiteDetailModel } from "@/api/site";
+import { searchFlows } from "@/api/flow";
+import type { FlowDetailModel, FlowSearchReqModel } from "@/api/flow";
 
 const router = useRouter();
 
@@ -31,6 +43,19 @@ const formInline = reactive({
   result_message: undefined,
   result_data: undefined
 });
+
+// 站点搜索
+const siteDetailSelectSearchLoading = ref(false);
+const siteDetailSelectSearchOptions = ref<SiteDetailModel[]>([]);
+
+// 流程模糊搜索(查询)
+const flowDetailSelectSearchLoading = ref(false);
+const flowDetailSelectSearchOptions = ref<FlowDetailModel[]>([]);
+
+// 来源方
+const taskSubSourceOptions = ref<MetaDataBaseModel[]>([]);
+// 任务状态
+const taskStatusOptions = ref<MetaDataBaseModel[]>([]);
 
 // 分页数据获取
 const getData = (page, pageSize, prop, order) => {
@@ -133,6 +158,76 @@ const toTaskDetail = (row: TaskDetailModel) => {
   });
   window.open(route.href, "_blank");
 };
+
+// 站点模糊搜索
+const searchSites = (query: string) => {
+  if (query) {
+    siteDetailSelectSearchLoading.value = true;
+    flowDetailSelectSearchOptions.value = [];
+    formInline.flow_id = undefined;
+
+    searchSitesByName(query).then(res => {
+      if (res?.status) {
+        siteDetailSelectSearchOptions.value = res.data.data;
+      } else {
+        message(res.message + "(" + res.data + ")", { type: "error" });
+      }
+      siteDetailSelectSearchLoading.value = false;
+    });
+  } else {
+    siteDetailSelectSearchOptions.value = [];
+  }
+};
+
+// 流程模糊搜索
+const searchDimFlows = (query: string) => {
+  if (query) {
+    flowDetailSelectSearchLoading.value = true;
+
+    const datatest: FlowSearchReqModel = {
+      id: undefined,
+      site_id: formInline.site_id,
+      flow_code: undefined,
+      flow_name: query,
+      flow_rpa_type: undefined,
+      flow_exe_env: undefined,
+      flow_biz_type: undefined,
+      retry_code: undefined,
+      is_active: true,
+      page: 1,
+      page_size: 10000,
+      sorts: [{ prop: sortProp.value, order: sortOrder.value }]
+    };
+    searchFlows(datatest).then(res => {
+      if (res?.status) {
+        flowDetailSelectSearchOptions.value = res.data.data;
+      } else {
+        message(res.message + "(" + res.data + ")", { type: "error" });
+      }
+      flowDetailSelectSearchLoading.value = false;
+    });
+  } else {
+    flowDetailSelectSearchOptions.value = [];
+  }
+};
+
+// 来源方查询
+getTaskSubSource().then(res => {
+  if (res?.status) {
+    taskSubSourceOptions.value = res.data;
+  } else {
+    message(res.message + "(" + res.data + ")", { type: "error" });
+  }
+});
+
+// 任务状态查询
+getTaskStatus().then(res => {
+  if (res?.status) {
+    taskStatusOptions.value = res.data;
+  } else {
+    message(res.message + "(" + res.data + ")", { type: "error" });
+  }
+});
 </script>
 
 <template>
@@ -145,10 +240,44 @@ const toTaskDetail = (row: TaskDetailModel) => {
             <el-input v-model="formInline.id" placeholder="请输入任务ID" />
           </el-form-item>
           <el-form-item label="站点">
-            <el-input v-model="formInline.site_id" placeholder="请选择站点" />
+            <el-select
+              v-model="formInline.site_id"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请选择站点"
+              remote-show-suffix
+              :remote-method="searchSites"
+              :loading="siteDetailSelectSearchLoading"
+              style="width: 240px"
+            >
+              <el-option
+                v-for="item in siteDetailSelectSearchOptions"
+                :key="item.id"
+                :label="item.site_name"
+                :value="item.id"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="流程">
-            <el-input v-model="formInline.flow_id" placeholder="请选择流程" />
+            <el-select
+              v-model="formInline.flow_id"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请选择流程"
+              remote-show-suffix
+              :remote-method="searchDimFlows"
+              :loading="flowDetailSelectSearchLoading"
+              style="width: 240px"
+            >
+              <el-option
+                v-for="item in flowDetailSelectSearchOptions"
+                :key="item.id"
+                :label="item.flow_name"
+                :value="item.id"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="业务编号">
             <el-input
@@ -157,16 +286,36 @@ const toTaskDetail = (row: TaskDetailModel) => {
             />
           </el-form-item>
           <el-form-item label="来源方">
-            <el-input
+            <el-select
               v-model="formInline.sub_source"
+              filterable
+              reserve-keyword
               placeholder="请选择任务来源"
-            />
+              style="width: 240px"
+            >
+              <el-option
+                v-for="item in taskSubSourceOptions"
+                :key="item.id"
+                :label="item.des"
+                :value="item.id"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="任务状态">
-            <el-input
+            <el-select
               v-model="formInline.status"
+              filterable
+              reserve-keyword
               placeholder="请选择任务状态"
-            />
+              style="width: 240px"
+            >
+              <el-option
+                v-for="item in taskStatusOptions"
+                :key="item.id"
+                :label="item.des"
+                :value="item.id"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="结果CODE">
             <el-input

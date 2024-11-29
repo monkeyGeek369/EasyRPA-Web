@@ -48,6 +48,11 @@ export interface TaskSearchResModel extends ResponsePageBaseModel {
   data: TaskDetailModel[];
 }
 
+export interface MetaDataBaseModel {
+  id: number;
+  des: string;
+}
+
 /** 搜索flow task*/
 export const searchFlowTasks = (data?: TaskSearchReqModel) => {
   const retData = buildRequestModel(data);
@@ -64,4 +69,24 @@ export const getFlowTaskById = (data?: number) => {
   return http.request<ResponseBaseModel>("post", baseUrlApi("flow/task/one"), {
     data: retData
   });
+};
+
+/** 获取所有来源方 */
+export const getTaskSubSource = () => {
+  const retData = buildRequestModel(null);
+  return http.request<ResponseBaseModel>(
+    "post",
+    baseUrlApi("flow/subSource/all"),
+    { data: retData }
+  );
+};
+
+/** 获取所有任务状态 */
+export const getTaskStatus = () => {
+  const retData = buildRequestModel(null);
+  return http.request<ResponseBaseModel>(
+    "post",
+    baseUrlApi("flow/taskStatus/all"),
+    { data: retData }
+  );
 };
