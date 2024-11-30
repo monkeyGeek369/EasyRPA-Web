@@ -8,7 +8,8 @@ import {
   addJob,
   updateJob,
   getJobTypes,
-  searchJobsDim
+  searchJobsDim,
+  jobExe
 } from "@/api/job";
 import type {
   JobSearchReqModel,
@@ -77,6 +78,7 @@ const updateFormInline = reactive({
 });
 const updateVisible = ref(false);
 const copyVisible = ref(false);
+const jobExeVisible = ref(false);
 
 // job类型
 const jobTypeSelectSearchOptions = ref<JobTypeModel[]>([]);
@@ -504,6 +506,38 @@ const handleOperationDataClick = (row: JobDetailModel) => {
   });
   window.open(route.href, "_blank");
 };
+
+// job 执行
+const handleJobExecute = (row: JobDetailModel) => {
+  if (row == undefined) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+
+  selectValues.value = [row];
+  jobExeVisible.value = true;
+};
+const handleJobExecuteConfirm = () => {
+  if (selectValues.value.length === 0) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+  if (selectValues.value.length > 1) {
+    message("只能选择一条数据", { type: "error" });
+    return;
+  }
+
+  const row = selectValues.value[0];
+  jobExe(row.id).then(res => {
+    if (res?.status) {
+      message(res.message, { type: "success" });
+    } else {
+      message(res.message + "(" + res.data + ")", { type: "error" });
+    }
+  });
+
+  jobExeVisible.value = false;
+};
 </script>
 
 <template>
@@ -747,6 +781,14 @@ const handleOperationDataClick = (row: JobDetailModel) => {
                 @click="handleOperationDataClick(scope.row)"
               >
                 数据
+              </el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleJobExecute(scope.row)"
+              >
+                执行一次
               </el-button>
             </template>
           </el-table-column>
@@ -1023,6 +1065,19 @@ const handleOperationDataClick = (row: JobDetailModel) => {
         <div class="dialog-footer">
           <el-button @click="copyVisible = false">取消</el-button>
           <el-button type="primary" @click="handleCopyConfirm">
+            确认
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 执行确认框 -->
+    <el-dialog v-model="jobExeVisible" title="提示" width="500">
+      <span>是否确认执行</span>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="jobExeVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleJobExecuteConfirm">
             确认
           </el-button>
         </div>

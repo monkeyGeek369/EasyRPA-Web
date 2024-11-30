@@ -115,3 +115,11 @@ export const searchJobsDim = (name: string) => {
     data: retData
   });
 };
+
+/* job exe */
+export const jobExe = (job_id: number) => {
+  const retData = buildRequestModel(job_id);
+  return http.request<ResponseBaseModel>("post", baseUrlApi(`job/exe`), {
+    data: retData
+  });
+};
