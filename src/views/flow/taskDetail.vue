@@ -2,8 +2,8 @@
 import { useRoute } from "vue-router";
 import { ref, reactive } from "vue";
 import type { ComponentSize } from "element-plus";
-import type { TaskDetailModel } from "@/api/flowTask";
-import { getFlowTaskById } from "@/api/flowTask";
+import type { TaskDetailModel, TaskLogSearchReqModel } from "@/api/flowTask";
+import { getFlowTaskById, searchFlowTaskLogs } from "@/api/flowTask";
 import { message } from "@/utils/message";
 import "vue-json-viewer/style.css";
 
@@ -15,6 +15,19 @@ const requestStandardMessage = ref();
 const flowStandardMessage = ref();
 const taskResultMessage = ref();
 const flowResultHandleMessage = ref();
+
+// 控制组件大小
+const size = ref<ComponentSize>("default");
+const disabled = ref(false);
+const background = ref(false);
+
+// 响应式参数
+const tableData = ref([]);
+const total = ref(0);
+const pageSize = ref(10);
+const currentPage = ref(1);
+const sortProp = ref("id");
+const sortOrder = ref("asc");
 
 // search task
 getFlowTaskById(Number(taskId)).then(res => {
@@ -36,6 +49,74 @@ getFlowTaskById(Number(taskId)).then(res => {
     message(res.message + "(" + res.data + ")", { type: "error" });
   }
 });
+
+// 分页数据获取
+const getData = (page, pageSize, prop, order) => {
+  // search sites
+  const datatest: TaskLogSearchReqModel = {
+    id: undefined,
+    task_id: Number(taskId),
+    page: page,
+    page_size: pageSize,
+    sorts: [{ prop: prop, order: order }]
+  };
+
+  searchFlowTaskLogs(datatest).then(res => {
+    if (res?.status) {
+      total.value = res.data.total;
+      tableData.value = res.data.data;
+    } else {
+      message(res.message + "(" + res.data + ")", { type: "error" });
+    }
+  });
+};
+
+// 初始化
+getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
+
+// 分页
+const handleCurrentChange = (val: number) => {
+  // val 为当前页
+  currentPage.value = val;
+  // 更新 tableData
+  getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
+};
+
+// 每页展示条数
+const handleSizeChange = (val: number) => {
+  // val 为当前页展示条数
+  pageSize.value = val;
+  // 更新 tableData
+  getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
+};
+
+// 排序
+const sortChange = column => {
+  // 排序字段"prop": "id", 排序顺序"order": null/"ascending"/"descending"
+  sortProp.value = column.prop;
+  sortOrder.value = column.order == "ascending" ? "asc" : "desc";
+  // 更新 tableData
+  getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
+};
+
+// 日期格式化
+const dateFormat = (row, column) => {
+  let time = row[column.property];
+  if (!time) {
+    return "";
+  }
+  const date = new Date(row[column.property]);
+  return date.toLocaleString("zh-CN", {
+    timeZone: "UTC",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  });
+};
 </script>
 <template>
   <div>
@@ -131,13 +212,62 @@ getFlowTaskById(Number(taskId)).then(res => {
 
       <!-- 信息卡片 -->
       <el-tabs type="border-card">
-        <el-tab-pane label="结果数据">
-          <json-viewer
-            :value="resultData || {}"
-            :expand-depth="5"
-            copyable
-            :sort="true"
-          />
+        <el-tab-pane label="任务日志">
+          <el-table
+            :data="tableData"
+            :stripe="true"
+            :default-sort="{ prop: 'id', order: 'ascending' }"
+            :border="true"
+            style="width: 100%; height: 100%"
+            @sort-change="sortChange"
+          >
+            <el-table-column
+              prop="id"
+              label="ID"
+              width="80"
+              sortable="custom"
+            />
+            <el-table-column prop="log_type_name" label="日志类型" />
+            <el-table-column
+              prop="message"
+              label="日志信息"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="screenshot"
+              label="截图"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="robot_ip"
+              label="机器ip"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="created_time"
+              label="创建日期"
+              :formatter="dateFormat"
+              show-overflow-tooltip
+            />
+          </el-table>
+
+          <!-- 分页行 -->
+          <el-row>
+            <el-col :span="24" style="margin-top: 20px; margin-bottom: 20px">
+              <el-pagination
+                v-model:current-page="currentPage"
+                v-model:page-size="pageSize"
+                scrollbar-tabindex="1"
+                :page-sizes="[10, 20, 50, 100, 200]"
+                :size="size"
+                :disabled="disabled"
+                :background="background"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="total"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+            /></el-col>
+          </el-row>
         </el-tab-pane>
         <el-tab-pane label="请求标准报文">
           <json-viewer
@@ -166,6 +296,14 @@ getFlowTaskById(Number(taskId)).then(res => {
         <el-tab-pane label="任务执行处理结果">
           <json-viewer
             :value="flowResultHandleMessage || {}"
+            :expand-depth="5"
+            copyable
+            :sort="true"
+          />
+        </el-tab-pane>
+        <el-tab-pane label="结果数据">
+          <json-viewer
+            :value="resultData || {}"
             :expand-depth="5"
             copyable
             :sort="true"

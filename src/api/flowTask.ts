@@ -53,6 +53,24 @@ export interface MetaDataBaseModel {
   des: string;
 }
 
+export interface TaskLogSearchReqModel extends RequestPageBaseModel {
+  id: number;
+  task_id: number;
+}
+export interface TaskLogDetailModel extends ResponseDoBaseModel {
+  id: number;
+  task_id: number;
+  log_type: number;
+  log_type_name: string;
+  message: string;
+  screenshot: string;
+  robot_ip: string;
+}
+
+export interface TaskLogSearchResModel extends ResponsePageBaseModel {
+  data: TaskLogDetailModel[];
+}
+
 /** 搜索flow task*/
 export const searchFlowTasks = (data?: TaskSearchReqModel) => {
   const retData = buildRequestModel(data);
@@ -87,6 +105,16 @@ export const getTaskStatus = () => {
   return http.request<ResponseBaseModel>(
     "post",
     baseUrlApi("flow/taskStatus/all"),
+    { data: retData }
+  );
+};
+
+/** 搜索flow task log*/
+export const searchFlowTaskLogs = (data?: TaskLogSearchReqModel) => {
+  const retData = buildRequestModel(data);
+  return http.request<ResponseBaseModel>(
+    "post",
+    baseUrlApi("flow/task/log/search"),
     { data: retData }
   );
 };
