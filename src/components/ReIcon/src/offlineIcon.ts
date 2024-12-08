@@ -17,6 +17,7 @@ import StackOverFlow from "@iconify-icons/ri/stack-overflow-fill";
 import TimerFull from "@iconify-icons/ri/timer-2-fill";
 import JobData from "@iconify-icons/ri/database-2-fill";
 import JobRecord from "@iconify-icons/ri/record-mail-fill";
+import Robot from "@iconify-icons/ri/robot-2-line";
 
 addIcon("ri:search-line", Search);
 addIcon("ri:information-line", InformationLine);
@@ -27,3 +28,4 @@ addIcon("ri:stack-overflow-fill", StackOverFlow);
 addIcon("ri:timer-2-fill", TimerFull);
 addIcon("ri:timeline-view", JobData);
 addIcon("ri:record-mail-fill", JobRecord);
+addIcon("ri:robot-2-line", Robot);

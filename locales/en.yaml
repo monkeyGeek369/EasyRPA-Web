@@ -79,6 +79,9 @@ menus:
   jobList: Job List
   jobRecord: Job Record
   jobData: Job Data
+  robot: Robot
+  robotList: Robot List
+  robotLogList: Robot Log List
   pureFourZeroFour: "404"
   pureFourZeroOne: "403"
   pureFive: "500"

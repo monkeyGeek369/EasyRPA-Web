@@ -79,6 +79,9 @@ menus:
   jobList: 定时任务列表
   jobRecord: 定时任务日志
   jobData: 定时任务数据
+  robot: 机器人
+  robotList: 机器人列表
+  robotLogList: 机器人日志列表
   pureFourZeroFour: "404"
   pureFourZeroOne: "403"
   pureFive: "500"
