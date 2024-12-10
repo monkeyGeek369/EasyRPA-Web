@@ -39,12 +39,7 @@ export function getPluginsList(
 
     monacoEditorPluginDefault({
       languageWorkers: ["typescript", "editorWorkerService"],
-      customWorkers: [
-        {
-          label: "graphql",
-          entry: "monaco-graphql/dist/graphql.worker"
-        }
-      ]
+      customWorkers: []
     }),
     checker({
       typescript: true,
