@@ -360,7 +360,7 @@ getTaskStatus().then(res => {
           @sort-change="sortChange"
         >
           <el-table-column prop="id" label="ID" width="80" sortable="custom" />
-          <el-table-column prop="site_name" label="站点" width="180" />
+          <el-table-column prop="site_name" label="站点" width="120" />
           <el-table-column
             prop="flow_code"
             label="流程code"
@@ -382,22 +382,32 @@ getTaskStatus().then(res => {
           <el-table-column
             prop="biz_no"
             label="业务编号"
+            width="90"
             show-overflow-tooltip
           />
           <el-table-column
             prop="sub_source_name"
             label="来源方"
+            width="120"
             show-overflow-tooltip
           />
           <el-table-column
             prop="status_name"
-            label="任务状态"
+            label="状态"
+            width="60"
             show-overflow-tooltip
           />
           <el-table-column
             prop="result_code"
             label="结果code"
+            width="90"
             show-overflow-tooltip
+          />
+          <el-table-column
+            prop="created_time"
+            label="创建日期"
+            width="100"
+            :formatter="dateFormat"
           />
           <el-table-column fixed="right" label="操作" min-width="100">
             <template #default="scope">
