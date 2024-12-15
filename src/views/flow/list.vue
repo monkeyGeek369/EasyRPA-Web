@@ -916,7 +916,7 @@ const copyFlow = () => {
           <el-input-number
             v-model="addFormInline.max_retry_number"
             :min="1"
-            :max="10"
+            :max="10000"
           />
         </el-form-item>
         <el-form-item label="最大执行时间(秒)">
@@ -1049,7 +1049,7 @@ const copyFlow = () => {
           <el-input-number
             v-model="updateFormInline.max_retry_number"
             :min="1"
-            :max="10"
+            :max="10000"
           />
         </el-form-item>
         <el-form-item label="最大执行时间(秒)">
