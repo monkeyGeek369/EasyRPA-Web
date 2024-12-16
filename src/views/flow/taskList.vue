@@ -134,8 +134,7 @@ const dateFormat = (row, column) => {
 
 // 计算时间差
 const timeDifference = (row, column) => {
-  let time = row["created_time"];
-  if (!time) {
+  if (!row["created_time"] || !row["modify_time"]) {
     return "0";
   }
 
