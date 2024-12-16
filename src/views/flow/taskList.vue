@@ -132,6 +132,24 @@ const dateFormat = (row, column) => {
   });
 };
 
+// 计算时间差
+const timeDifference = (row, column) => {
+  let time = row["created_time"];
+  if (!time) {
+    return "0";
+  }
+
+  const date = new Date(Date.parse(row["created_time"]));
+  // 获取修改日期
+  let updateDate = new Date();
+  if (row["modify_time"]) {
+    updateDate = new Date(Date.parse(row["modify_time"]));
+  }
+
+  let timeDif = (updateDate.getTime() - date.getTime()) / 1000;
+  return String(timeDif);
+};
+
 // 搜索
 const onSubmit = () => {
   getData(currentPage.value, pageSize.value, sortProp.value, sortOrder.value);
@@ -360,11 +378,11 @@ getTaskStatus().then(res => {
           @sort-change="sortChange"
         >
           <el-table-column prop="id" label="ID" width="80" sortable="custom" />
-          <el-table-column prop="site_name" label="站点" width="120" />
+          <el-table-column prop="site_name" label="站点" width="80" />
           <el-table-column
             prop="flow_code"
             label="流程code"
-            width="180"
+            width="160"
             show-overflow-tooltip
           />
           <el-table-column
@@ -408,6 +426,18 @@ getTaskStatus().then(res => {
             label="创建日期"
             width="100"
             :formatter="dateFormat"
+          />
+          <el-table-column
+            prop="retry_number"
+            label="次数"
+            width="60"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="created_time"
+            label="持续时间s"
+            width="100"
+            :formatter="timeDifference"
           />
           <el-table-column fixed="right" label="操作" min-width="100">
             <template #default="scope">
