@@ -32,6 +32,7 @@ export interface JobDetailModel extends ResponseDoBaseModel {
   parent_job_name: string;
   current_data_id: number;
   last_record_id: number;
+  last_record_status: string;
 }
 
 export interface JobSearchResModel extends ResponsePageBaseModel {

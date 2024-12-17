@@ -695,19 +695,19 @@ const handleJobExecuteConfirm = () => {
           <el-table-column
             prop="cron"
             label="cron"
-            width="180"
+            width="100"
             show-overflow-tooltip
           />
           <el-table-column
             prop="flow_code"
             label="流程code"
-            width="180"
+            width="100"
             show-overflow-tooltip
           />
           <el-table-column
             prop="flow_name"
             label="流程名称"
-            width="180"
+            width="100"
             show-overflow-tooltip
           />
           <el-table-column
@@ -716,19 +716,20 @@ const handleJobExecuteConfirm = () => {
             width="180"
             show-overflow-tooltip
           />
-          <el-table-column prop="job_type_name" label="job类型" width="180" />
+          <el-table-column
+            prop="last_record_status"
+            label="上次状态"
+            width="100"
+          />
+          <el-table-column prop="last_record_id" label="最新记录" width="100" />
+          <el-table-column prop="job_type_name" label="job类型" width="100" />
           <el-table-column
             prop="parent_job_name"
             label="父job名称"
-            width="180"
+            width="100"
             show-overflow-tooltip
           />
-          <el-table-column
-            prop="current_data_id"
-            label="当前数据"
-            width="180"
-          />
-          <el-table-column prop="last_record_id" label="最新记录" width="180" />
+          <el-table-column prop="current_data_id" label="当前数据" width="80" />
           <el-table-column prop="created_id" label="创建人ID" />
           <el-table-column
             prop="created_time"
