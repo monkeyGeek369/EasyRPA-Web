@@ -729,24 +729,22 @@ const handleJobExecuteConfirm = () => {
             width="100"
             show-overflow-tooltip
           />
-          <el-table-column prop="current_data_id" label="当前数据" width="80" />
-          <el-table-column prop="created_id" label="创建人ID" />
+          <el-table-column
+            prop="current_data_id"
+            label="当前数据"
+            width="100"
+          />
+          <el-table-column prop="created_id" label="创建人" />
           <el-table-column
             prop="created_time"
             label="创建日期"
-            :formatter="dateFormat"
-            show-overflow-tooltip
-          />
-          <el-table-column prop="modify_id" label="修改人ID" />
-          <el-table-column
-            prop="modify_time"
-            label="修改日期"
+            width="180"
             :formatter="dateFormat"
             show-overflow-tooltip
           />
           <el-table-column
             prop="is_active"
-            label="是否启用"
+            label="状态"
             :formatter="formatBoolean"
           />
           <el-table-column fixed="right" label="操作" min-width="110">

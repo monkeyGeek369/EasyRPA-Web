@@ -188,16 +188,36 @@ getRecordStatus();
           @sort-change="sortChange"
         >
           <el-table-column prop="id" label="ID" width="80" sortable="custom" />
-          <el-table-column prop="job_id" label="job-ID" width="180" />
-          <el-table-column prop="job_name" label="job名称" width="180" />
-          <el-table-column prop="flow_code" label="流程code" width="180" />
-          <el-table-column prop="flow_name" label="流程名称" width="180" />
-          <el-table-column prop="flow_task_id" label="流程任务ID" width="180" />
-          <el-table-column prop="status_name" label="状态" width="180" />
-          <el-table-column prop="result_message" label="结果消息" width="180" />
+          <el-table-column prop="job_id" label="job-ID" width="80" />
+          <el-table-column
+            prop="job_name"
+            label="job名称"
+            width="180"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="flow_code"
+            label="流程code"
+            width="180"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="flow_name"
+            label="流程名称"
+            width="180"
+            show-overflow-tooltip
+          />
+          <el-table-column prop="flow_task_id" label="流程任务ID" width="100" />
+          <el-table-column prop="status_name" label="状态" width="100" />
+          <el-table-column
+            prop="result_message"
+            label="结果消息"
+            show-overflow-tooltip
+          />
           <el-table-column
             prop="created_time"
             label="创建日期"
+            width="180"
             :formatter="dateFormat"
           />
         </el-table>
