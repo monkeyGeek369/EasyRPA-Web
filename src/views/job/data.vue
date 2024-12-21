@@ -157,7 +157,7 @@ const cleanForm = () => {
           @sort-change="sortChange"
         >
           <el-table-column prop="id" label="ID" width="80" sortable="custom" />
-          <el-table-column prop="job_id" label="job-ID" width="180" />
+          <el-table-column prop="job_id" label="job-ID" width="80" />
           <el-table-column
             prop="job_name"
             label="job名称"
@@ -173,7 +173,6 @@ const cleanForm = () => {
           <el-table-column
             prop="data_json"
             label="数据json"
-            width="180"
             show-overflow-tooltip
           />
           <el-table-column
@@ -181,6 +180,7 @@ const cleanForm = () => {
             label="创建日期"
             :formatter="dateFormat"
             show-overflow-tooltip
+            width="160"
           />
         </el-table>
       </el-col>
