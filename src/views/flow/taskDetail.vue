@@ -226,8 +226,14 @@ const dateFormat = (row, column) => {
               label="ID"
               width="80"
               sortable="custom"
+              show-overflow-tooltip
             />
-            <el-table-column prop="log_type_name" label="日志类型" />
+            <el-table-column
+              prop="log_type_name"
+              label="日志类型"
+              width="100"
+              show-overflow-tooltip
+            />
             <el-table-column
               prop="message"
               label="日志信息"
@@ -236,16 +242,19 @@ const dateFormat = (row, column) => {
             <el-table-column
               prop="screenshot"
               label="截图"
+              width="80"
               show-overflow-tooltip
             />
             <el-table-column
               prop="robot_ip"
               label="机器ip"
+              width="100"
               show-overflow-tooltip
             />
             <el-table-column
               prop="created_time"
               label="创建日期"
+              width="160"
               :formatter="dateFormat"
               show-overflow-tooltip
             />
