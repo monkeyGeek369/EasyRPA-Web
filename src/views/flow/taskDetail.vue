@@ -201,7 +201,7 @@ const dateFormat = (row, column) => {
           <span class="title_value">{{ taskDetail?.result_message }}</span>
         </el-col>
         <el-col :span="6">
-          <span class="title">重试次数:</span>
+          <span class="title">执行次数:</span>
           <span class="title_value">{{ taskDetail?.retry_number }}</span>
         </el-col>
         <el-col :span="6" />

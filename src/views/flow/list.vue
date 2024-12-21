@@ -248,7 +248,7 @@ const addDialog = () => {
     return;
   }
   if (addFormInline.max_retry_number === undefined) {
-    message("请输入最大重试次数", { type: "error" });
+    message("请输入最大执行次数", { type: "error" });
     return;
   }
   if (addFormInline.max_exe_time === undefined) {
@@ -467,7 +467,7 @@ const updateDialog = () => {
     return;
   }
   if (updateFormInline.max_retry_number === undefined) {
-    message("请输入最大重试次数", { type: "error" });
+    message("请输入最大执行次数", { type: "error" });
     return;
   }
   if (updateFormInline.max_exe_time === undefined) {
@@ -729,7 +729,7 @@ const copyFlow = () => {
           />
           <el-table-column
             prop="max_retry_number"
-            label="最大重试次数"
+            label="最大执行次数"
             width="180"
           />
           <el-table-column
@@ -912,7 +912,7 @@ const copyFlow = () => {
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="最大重试次数">
+        <el-form-item label="最大执行次数">
           <el-input-number
             v-model="addFormInline.max_retry_number"
             :min="1"
@@ -1045,7 +1045,7 @@ const copyFlow = () => {
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="最大重试次数">
+        <el-form-item label="最大执行次数">
           <el-input-number
             v-model="updateFormInline.max_retry_number"
             :min="1"
