@@ -557,6 +557,7 @@ const searchFlows = (query: string) => {
         <el-form-item label="配置信息">
           <el-input
             v-model="addFormInline.config_json"
+            :autosize="{ minRows: 2, maxRows: 12 }"
             placeholder="请输入配置信息"
           />
         </el-form-item>
@@ -610,6 +611,8 @@ const searchFlows = (query: string) => {
         <el-form-item label="配置信息">
           <el-input
             v-model="updateFormInline.config_json"
+            type="textarea"
+            :autosize="{ minRows: 2, maxRows: 12 }"
             placeholder="请输入配置信息"
           />
         </el-form-item>

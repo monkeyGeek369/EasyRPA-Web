@@ -53,6 +53,7 @@ const formInline = reactive({
 });
 const selectValues = ref<JobDetailModel[]>([]);
 const deleteVisible = ref(false);
+const execOneVisible = ref(false);
 const addFormInline = reactive<JobAddReqModel>({
   job_name: undefined,
   cron: undefined,
@@ -538,6 +539,26 @@ const handleJobExecuteConfirm = () => {
 
   jobExeVisible.value = false;
 };
+
+// 执行一次
+const execOne = () => {
+  if (selectValues.value.length === 0) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+
+  Promise.all(selectValues.value.map(v => jobExe(v.id))).then(responses => {
+    responses.forEach(res => {
+      if (res?.status) {
+        message(res.message, { type: "success" });
+      } else {
+        message(res.message + "(" + res.data?.message + ")", { type: "error" });
+      }
+    });
+    onSubmit();
+  });
+  execOneVisible.value = false;
+};
 </script>
 
 <template>
@@ -664,6 +685,9 @@ const handleJobExecuteConfirm = () => {
         >
         <el-button type="primary" round @click="copyVisible = true"
           >复制</el-button
+        >
+        <el-button type="primary" round @click="execOneVisible = true"
+          >执行一次</el-button
         >
       </el-col>
     </el-row>
@@ -822,6 +846,17 @@ const handleJobExecuteConfirm = () => {
           <el-button type="primary" @click="handleDeleteConfirm">
             确认
           </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 执行确认框 -->
+    <el-dialog v-model="execOneVisible" title="提示" width="500">
+      <span>是否确认执行一次</span>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="execOneVisible = false">取消</el-button>
+          <el-button type="primary" @click="execOne"> 确认 </el-button>
         </div>
       </template>
     </el-dialog>
