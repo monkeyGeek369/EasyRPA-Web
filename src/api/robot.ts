@@ -70,6 +70,14 @@ export const deleteRobot = (code: string) => {
   });
 };
 
+/** release robot*/
+export const releaseRobot = (code: string) => {
+  const retData = buildRequestModel(code);
+  return http.request<ResponseBaseModel>("post", baseUrlApi("release/robot"), {
+    data: retData
+  });
+};
+
 /** 搜索robot logs*/
 export const searchRobotLogs = (data?: RobotLogSearchReqModel) => {
   const retData = buildRequestModel(data);

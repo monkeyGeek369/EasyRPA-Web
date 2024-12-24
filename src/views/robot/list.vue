@@ -7,10 +7,16 @@ import type {
   RobotSearchReqModel,
   MetaDataBaseModel
 } from "@/api/robot";
-import { searchRobots, getAllRobotStatus, deleteRobot } from "@/api/robot";
+import {
+  searchRobots,
+  getAllRobotStatus,
+  deleteRobot,
+  releaseRobot
+} from "@/api/robot";
 import { message } from "@/utils/message";
 const router = useRouter();
 const deleteVisible = ref(false);
+const releaseVisible = ref(false);
 
 // 控制组件大小
 const size = ref<ComponentSize>("default");
@@ -171,6 +177,40 @@ const handleDeleteConfirm = () => {
   );
   deleteVisible.value = false;
 };
+
+// 释放
+const handleRelease = (row: RobotDetailModel) => {
+  if (row == undefined) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+
+  selectValues.value = [row];
+  releaseVisible.value = true;
+};
+
+const handleReleaseConfirm = () => {
+  if (selectValues.value.length === 0) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+
+  Promise.all(selectValues.value.map(v => releaseRobot(v.robot_code))).then(
+    responses => {
+      responses.forEach(res => {
+        if (res?.status) {
+          message(res.message, { type: "success" });
+        } else {
+          message(res.message + "(" + res.data?.message + ")", {
+            type: "error"
+          });
+        }
+      });
+      onSubmit();
+    }
+  );
+  releaseVisible.value = false;
+};
 </script>
 <template>
   <div>
@@ -283,6 +323,14 @@ const handleDeleteConfirm = () => {
               >
                 删除
               </el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleRelease(scope.row)"
+              >
+                释放
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -314,6 +362,19 @@ const handleDeleteConfirm = () => {
         <div class="dialog-footer">
           <el-button @click="deleteVisible = false">取消</el-button>
           <el-button type="primary" @click="handleDeleteConfirm">
+            确认
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 释放确认框 -->
+    <el-dialog v-model="releaseVisible" title="提示" width="500">
+      <span>是否确认释放Robot</span>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="releaseVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleReleaseConfirm">
             确认
           </el-button>
         </div>
