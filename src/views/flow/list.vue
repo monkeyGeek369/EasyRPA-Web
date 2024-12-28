@@ -922,7 +922,7 @@ const copyFlow = () => {
         <el-form-item label="最大执行时间(秒)">
           <el-input-number
             v-model="addFormInline.max_exe_time"
-            :min="1800"
+            :min="60"
             :max="36000"
             :step="600"
           />
@@ -1055,7 +1055,7 @@ const copyFlow = () => {
         <el-form-item label="最大执行时间(秒)">
           <el-input-number
             v-model="updateFormInline.max_exe_time"
-            :min="1800"
+            :min="60"
             :max="36000"
             :step="600"
           />
