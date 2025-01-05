@@ -13,7 +13,6 @@ export interface FlowSearchReqModel extends RequestPageBaseModel {
   flow_code: string;
   flow_name: string;
   flow_rpa_type: number;
-  flow_exe_env: number;
   flow_biz_type: number;
   retry_code: string;
   is_active: boolean;
@@ -24,7 +23,6 @@ export interface FlowAddReqModel {
   flow_code: string;
   flow_name: string;
   flow_rpa_type: number;
-  flow_exe_env: number;
   flow_biz_type: number;
   max_retry_number: number;
   max_exe_time: number;
@@ -41,7 +39,6 @@ export interface FlowUpdateReqModel {
   flow_code: string;
   flow_name: string;
   flow_rpa_type: number;
-  flow_exe_env: number;
   flow_biz_type: number;
   max_retry_number: number;
   max_exe_time: number;
@@ -61,8 +58,6 @@ export interface FlowDetailModel extends ResponseDoBaseModel {
   flow_name: string;
   flow_rpa_type: number;
   flow_rpa_type_name: string;
-  flow_exe_env: number;
-  flow_exe_env_name: string;
   flow_biz_type: number;
   flow_biz_type_name: string;
   max_retry_number: number;
@@ -122,14 +117,6 @@ export const updateFlowScript = (data: FlowUpdateReqModel) => {
 export const getRpaTypes = () => {
   const retData = buildRequestModel(null);
   return http.request<ResponseBaseModel>("post", baseUrlApi(`flow/rpa/type`), {
-    data: retData
-  });
-};
-
-/** 获取执行环境 */
-export const getExeEnvs = () => {
-  const retData = buildRequestModel(null);
-  return http.request<ResponseBaseModel>("post", baseUrlApi("flow/exe/env"), {
     data: retData
   });
 };

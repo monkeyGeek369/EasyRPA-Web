@@ -207,7 +207,6 @@ const searchDimFlows = (query: string) => {
       flow_code: undefined,
       flow_name: query,
       flow_rpa_type: undefined,
-      flow_exe_env: undefined,
       flow_biz_type: undefined,
       retry_code: undefined,
       is_active: true,

@@ -15,7 +15,6 @@ import {
   searchFlows,
   addFlow,
   getRpaTypes,
-  getExeEnvs,
   getBizTypes,
   getRetryCodes,
   logicDeleteFlow,
@@ -49,7 +48,6 @@ const formInline = reactive({
   flow_code: undefined,
   flow_name: undefined,
   flow_rpa_type: undefined,
-  flow_exe_env: undefined,
   flow_biz_type: undefined,
   retry_code: undefined,
   is_active: undefined
@@ -61,7 +59,6 @@ const addFormInline = reactive<FlowAddReqModel>({
   flow_code: undefined,
   flow_name: undefined,
   flow_rpa_type: undefined,
-  flow_exe_env: undefined,
   flow_biz_type: undefined,
   max_retry_number: 3,
   max_exe_time: 3600,
@@ -102,7 +99,6 @@ const updateFormInline = reactive({
   flow_code: undefined,
   flow_name: undefined,
   flow_rpa_type: undefined,
-  flow_exe_env: undefined,
   flow_biz_type: undefined,
   max_retry_number: 3,
   max_exe_time: 3600,
@@ -124,7 +120,6 @@ const getData = (page, pageSize, prop, order) => {
     flow_code: formInline.flow_code,
     flow_name: formInline.flow_name,
     flow_rpa_type: formInline.flow_rpa_type,
-    flow_exe_env: formInline.flow_exe_env,
     flow_biz_type: formInline.flow_biz_type,
     retry_code: formInline.retry_code,
     is_active:
@@ -165,7 +160,6 @@ const cleanForm = () => {
   formInline.flow_code = undefined;
   formInline.flow_name = undefined;
   formInline.flow_rpa_type = undefined;
-  formInline.flow_exe_env = undefined;
   formInline.flow_biz_type = undefined;
   formInline.retry_code = undefined;
   formInline.is_active = undefined;
@@ -239,10 +233,6 @@ const addDialog = () => {
     message("请选择选择流程类型", { type: "error" });
     return;
   }
-  if (addFormInline.flow_exe_env === undefined) {
-    message("请选择执行环境", { type: "error" });
-    return;
-  }
   if (addFormInline.flow_biz_type === undefined) {
     message("请选择业务类型", { type: "error" });
     return;
@@ -280,7 +270,6 @@ const addDialog = () => {
       addFormInline.flow_code = undefined;
       addFormInline.flow_name = undefined;
       addFormInline.flow_rpa_type = undefined;
-      addFormInline.flow_exe_env = undefined;
       addFormInline.flow_biz_type = undefined;
       addFormInline.retry_code = undefined;
 
@@ -321,11 +310,6 @@ const searchSites = (query: string) => {
 getRpaTypes().then(res => {
   if (res?.status) {
     flowRpaTypeOptions.value = res.data.data;
-  }
-});
-getExeEnvs().then(res => {
-  if (res?.status) {
-    flowExeEnvOptions.value = res.data.data;
   }
 });
 getBizTypes().then(res => {
@@ -421,7 +405,6 @@ const showUpdateDialog = (selectRow: FlowDetailModel) => {
   updateFormInline.flow_code = row.flow_code;
   updateFormInline.flow_name = row.flow_name;
   updateFormInline.flow_rpa_type = row.flow_rpa_type;
-  updateFormInline.flow_exe_env = row.flow_exe_env;
   updateFormInline.flow_biz_type = row.flow_biz_type;
   updateFormInline.max_retry_number = row.max_retry_number;
   updateFormInline.max_exe_time = row.max_exe_time;
@@ -458,10 +441,6 @@ const updateDialog = () => {
     message("请选择选择流程类型", { type: "error" });
     return;
   }
-  if (updateFormInline.flow_exe_env === undefined) {
-    message("请选择执行环境", { type: "error" });
-    return;
-  }
   if (updateFormInline.flow_biz_type === undefined) {
     message("请选择业务类型", { type: "error" });
     return;
@@ -487,7 +466,6 @@ const updateDialog = () => {
     flow_code: updateFormInline.flow_code,
     flow_name: updateFormInline.flow_name,
     flow_rpa_type: updateFormInline.flow_rpa_type,
-    flow_exe_env: updateFormInline.flow_exe_env,
     flow_biz_type: updateFormInline.flow_biz_type,
     max_retry_number: updateFormInline.max_retry_number,
     max_exe_time: updateFormInline.max_exe_time,
@@ -616,20 +594,6 @@ const copyFlow = () => {
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="执行环境">
-            <el-select
-              v-model="formInline.flow_exe_env"
-              placeholder="请选择执行环境"
-              style="width: 240px"
-            >
-              <el-option
-                v-for="item in flowExeEnvOptions"
-                :key="item.business_code"
-                :label="item.name_cn"
-                :value="Number(item.business_code)"
-              />
-            </el-select>
-          </el-form-item>
           <el-form-item label="业务类型">
             <el-select
               v-model="formInline.flow_biz_type"
@@ -715,11 +679,6 @@ const copyFlow = () => {
           <el-table-column
             prop="flow_rpa_type_name"
             label="流程类型"
-            width="180"
-          />
-          <el-table-column
-            prop="flow_exe_env_name"
-            label="执行环境"
             width="180"
           />
           <el-table-column
@@ -884,20 +843,6 @@ const copyFlow = () => {
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="执行环境">
-          <el-select
-            v-model="addFormInline.flow_exe_env"
-            placeholder="请选择执行环境"
-            style="width: 240px"
-          >
-            <el-option
-              v-for="item in flowExeEnvOptions"
-              :key="item.business_code"
-              :label="item.name_cn"
-              :value="Number(item.business_code)"
-            />
-          </el-select>
-        </el-form-item>
         <el-form-item label="业务类型">
           <el-select
             v-model="addFormInline.flow_biz_type"
@@ -1011,20 +956,6 @@ const copyFlow = () => {
           >
             <el-option
               v-for="item in flowRpaTypeOptions"
-              :key="item.business_code"
-              :label="item.name_cn"
-              :value="Number(item.business_code)"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="执行环境">
-          <el-select
-            v-model="updateFormInline.flow_exe_env"
-            placeholder="请选择执行环境"
-            style="width: 240px"
-          >
-            <el-option
-              v-for="item in flowExeEnvOptions"
               :key="item.business_code"
               :label="item.name_cn"
               :value="Number(item.business_code)"
