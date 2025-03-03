@@ -508,6 +508,14 @@ const handleOperationDataClick = (row: JobDetailModel) => {
   window.open(route.href, "_blank");
 };
 
+const handleOperationHandlerDataClick = (row: JobDetailModel) => {
+  const route = router.resolve({
+    path: "/job/handler/data",
+    query: { id: row.id }
+  });
+  window.open(route.href, "_blank");
+};
+
 // job 执行
 const handleJobExecute = (row: JobDetailModel) => {
   if (row == undefined) {
@@ -798,12 +806,22 @@ const execOne = () => {
                 记录
               </el-button>
               <el-button
+                v-if="scope.row.job_type == 1"
                 link
                 type="primary"
                 size="small"
                 @click="handleOperationDataClick(scope.row)"
               >
                 数据
+              </el-button>
+              <el-button
+                v-if="scope.row.job_type == 2"
+                link
+                type="primary"
+                size="small"
+                @click="handleOperationHandlerDataClick(scope.row)"
+              >
+                结果
               </el-button>
               <el-button
                 link

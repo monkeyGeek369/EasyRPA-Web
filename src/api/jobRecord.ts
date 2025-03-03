@@ -24,6 +24,7 @@ export interface JobRecordDetailModel extends ResponseDoBaseModel {
   status: number;
   status_name: string;
   result_message: string;
+  handler_data_id: number;
 }
 
 export interface JobRecordSearchResModel extends ResponsePageBaseModel {

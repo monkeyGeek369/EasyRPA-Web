@@ -79,6 +79,7 @@ menus:
   jobList: Job List
   jobRecord: Job Record
   jobData: Job Data
+  jobHandlerData: Job Handler Data
   robot: Robot
   robotList: Robot List
   robotLogList: Robot Log List

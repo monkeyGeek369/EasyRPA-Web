@@ -38,6 +38,16 @@ export default {
         showLink: false,
         title: $t("menus.jobData")
       }
+    },
+    {
+      path: "/job/handler/data",
+      name: "job_handler_data",
+      component: () => import("@/views/job/handlerData.vue"),
+      meta: {
+        icon: "ri:timer-2-fill",
+        showLink: false,
+        title: $t("menus.jobHandlerData")
+      }
     }
   ]
 } satisfies RouteConfigsTable;
