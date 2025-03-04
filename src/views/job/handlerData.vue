@@ -3,17 +3,26 @@ import { useRoute } from "vue-router";
 import { ref, reactive } from "vue";
 import type { ComponentSize } from "element-plus";
 import type {
-  JobRecordSearchReqModel,
-  JobRecordSearchResModel,
-  JobRecordDetailModel,
-  JobRecordStatusModel
-} from "@/api/jobRecord";
-import { searchJobRecords, getJobRecordStatus } from "@/api/jobRecord";
+  JobHandlerDataSearchReqModel,
+  JobHandlerDataSearchResModel,
+  JobHandlerDataDetailModel,
+  JobHandlerDataStatusModel,
+  JobHandlerDataUpdateReqModel
+} from "@/api/jobHandlerData";
+import {
+  searchJobHandlerDatas,
+  getJobHandlerDataStatus,
+  deleteJobHandlerData,
+  updateJobHandlerDataStatus
+} from "@/api/jobHandlerData";
 import { message } from "@/utils/message";
 
 const route = useRoute();
 const jobId = route.query.id;
-const statusOptions = ref<JobRecordStatusModel[]>([]);
+const statusOptions = ref<JobHandlerDataStatusModel[]>([]);
+const selectValues = ref<JobHandlerDataDetailModel[]>([]);
+const deleteVisible = ref(false);
+const errorVisible = ref(false);
 
 // 控制组件大小
 const size = ref<ComponentSize>("default");
@@ -30,24 +39,26 @@ const sortOrder = ref("desc");
 const formInline = reactive({
   id: undefined,
   job_id: Number(jobId),
-  flow_task_id: undefined,
+  data_job_id: undefined,
+  data_id: undefined,
   status: undefined
 });
 
 // 分页数据获取
 const getData = (page, pageSize, prop, order) => {
   // search sites
-  const datatest: JobRecordSearchReqModel = {
+  const datatest: JobHandlerDataSearchReqModel = {
     id: formInline.id,
     job_id: formInline.job_id,
-    flow_task_id: formInline.flow_task_id,
+    data_job_id: formInline.data_job_id,
+    data_id: formInline.data_id,
     status: formInline.status,
     page: page,
     page_size: pageSize,
     sorts: [{ prop: prop, order: order }]
   };
 
-  searchJobRecords(datatest).then(res => {
+  searchJobHandlerDatas(datatest).then(res => {
     if (res?.status) {
       total.value = res.data.total;
       tableData.value = res.data.data;
@@ -117,13 +128,14 @@ const onSubmit = () => {
 // 重置
 const cleanForm = () => {
   formInline.id = undefined;
-  formInline.flow_task_id = undefined;
+  formInline.data_job_id = undefined;
+  formInline.data_id = undefined;
   formInline.status = undefined;
 };
 
 // 查询record 状态
-const getRecordStatus = () => {
-  getJobRecordStatus().then(res => {
+const getHandlerDataStatus = () => {
+  getJobHandlerDataStatus().then(res => {
     if (res?.status) {
       statusOptions.value = res.data;
     } else {
@@ -131,7 +143,83 @@ const getRecordStatus = () => {
     }
   });
 };
-getRecordStatus();
+getHandlerDataStatus();
+
+// 选中行
+const handleSelectionChange = (rows: JobHandlerDataDetailModel[]) => {
+  selectValues.value = rows;
+};
+
+// 删除
+const handleDelete = (row: JobHandlerDataDetailModel) => {
+  if (row == undefined) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+
+  selectValues.value = [row];
+  deleteVisible.value = true;
+};
+const handleDeleteConfirm = () => {
+  if (selectValues.value.length === 0) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+
+  Promise.all(selectValues.value.map(v => deleteJobHandlerData(v.id))).then(
+    responses => {
+      responses.forEach(res => {
+        if (res?.status) {
+          message(res.message, { type: "success" });
+        } else {
+          message(res.message + "(" + res.data?.message + ")", {
+            type: "error"
+          });
+        }
+      });
+      onSubmit();
+    }
+  );
+  deleteVisible.value = false;
+};
+
+// 设置失败
+const setError = (row: JobHandlerDataDetailModel) => {
+  if (row == undefined) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+
+  selectValues.value = [row];
+  errorVisible.value = true;
+};
+const handleSetErrorConfirm = () => {
+  if (selectValues.value.length === 0) {
+    message("未选择数据", { type: "error" });
+    return;
+  }
+
+  const data: JobHandlerDataUpdateReqModel = {
+    id: selectValues.value[0].id,
+    status: 3
+  };
+
+  Promise.all(
+    selectValues.value.map(v => updateJobHandlerDataStatus(data))
+  ).then(responses => {
+    responses.forEach(res => {
+      if (res?.status) {
+        message(res.message, { type: "success" });
+      } else {
+        message(res.message + "(" + res.data?.message + ")", {
+          type: "error"
+        });
+      }
+    });
+    onSubmit();
+  });
+  errorVisible.value = false;
+};
 </script>
 
 <template>
@@ -143,11 +231,14 @@ getRecordStatus();
           <el-form-item label="ID">
             <el-input v-model="formInline.id" placeholder="请输入ID" />
           </el-form-item>
-          <el-form-item label="任务ID">
+          <el-form-item label="数据JobID">
             <el-input
-              v-model="formInline.flow_task_id"
-              placeholder="请输入任务ID"
+              v-model="formInline.data_job_id"
+              placeholder="请输入数据JobID"
             />
+          </el-form-item>
+          <el-form-item label="数据ID">
+            <el-input v-model="formInline.data_id" placeholder="请输入数据ID" />
           </el-form-item>
           <el-form-item label="状态">
             <el-select
@@ -186,9 +277,9 @@ getRecordStatus();
           :border="true"
           style="width: 100%; height: 100%"
           @sort-change="sortChange"
+          @selection-change="handleSelectionChange"
         >
           <el-table-column prop="id" label="ID" width="80" sortable="custom" />
-          <el-table-column prop="job_id" label="job-ID" width="80" />
           <el-table-column
             prop="job_name"
             label="job名称"
@@ -196,36 +287,45 @@ getRecordStatus();
             show-overflow-tooltip
           />
           <el-table-column
-            prop="handler_data_id"
-            label="handler-data-ID"
+            prop="data_job_name"
+            label="数据job名称"
+            width="180"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="data_id"
+            label="数据ID"
             width="80"
             show-overflow-tooltip
           />
-          <el-table-column
-            prop="flow_code"
-            label="流程code"
-            width="180"
-            show-overflow-tooltip
-          />
-          <el-table-column
-            prop="flow_name"
-            label="流程名称"
-            width="180"
-            show-overflow-tooltip
-          />
-          <el-table-column prop="flow_task_id" label="流程任务ID" width="100" />
           <el-table-column prop="status_name" label="状态" width="100" />
-          <el-table-column
-            prop="result_message"
-            label="结果消息"
-            show-overflow-tooltip
-          />
           <el-table-column
             prop="created_time"
             label="创建日期"
             width="180"
             :formatter="dateFormat"
           />
+
+          <el-table-column fixed="right" label="操作" min-width="110">
+            <template #default="scope">
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleDelete(scope.row)"
+              >
+                删除
+              </el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="setError(scope.row)"
+              >
+                失败
+              </el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </el-col>
     </el-row>
@@ -247,5 +347,31 @@ getRecordStatus();
           @current-change="handleCurrentChange"
       /></el-col>
     </el-row>
+
+    <!-- 删除确认框 -->
+    <el-dialog v-model="deleteVisible" title="提示" width="500">
+      <span>是否确认删除</span>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="deleteVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleDeleteConfirm">
+            确认
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 设置失败确认框 -->
+    <el-dialog v-model="errorVisible" title="提示" width="500">
+      <span>是否确认失败</span>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="errorVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSetErrorConfirm">
+            确认
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
