@@ -197,8 +197,8 @@ getRecordStatus();
           />
           <el-table-column
             prop="handler_data_id"
-            label="handler-data-ID"
-            width="80"
+            label="处理数据ID"
+            width="120"
             show-overflow-tooltip
           />
           <el-table-column
