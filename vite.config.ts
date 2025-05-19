@@ -27,7 +27,7 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
       proxy: {
         "/easyrpa": {
           // 这里填写后端地址
-          target: "http://192.168.1.8:5003",
+          target: "http://192.168.2.178:5003",
           changeOrigin: true,
           rewrite: path => path.replace(/^\/easyrpa/, "")
         }
