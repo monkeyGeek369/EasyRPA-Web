@@ -1,10 +1,10 @@
-FROM easyrpa-web-base-node:latest as build-stage
+FROM easyrpa-web-base-node:latest AS build-stage
 
 WORKDIR /app
 COPY . .
 RUN pnpm build
 
-FROM easyrpa-web-base-nginx:latest as production-stage
+FROM easyrpa-web-base-nginx:latest AS production-stage
 
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 EXPOSE 80
